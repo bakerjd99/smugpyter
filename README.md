@@ -1,4 +1,3 @@
-![](jupytersmugmug.png) `SmugPyter` (J-Hacks) README
 ======================================================
 
 This repository contains a collection of Jupyter notebooks that illustrate how to use Python
