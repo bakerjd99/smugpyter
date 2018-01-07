@@ -1,4 +1,5 @@
 Thumbs.db
 
 ## parsed/compiled python files to ignore
+*.pyc
 
