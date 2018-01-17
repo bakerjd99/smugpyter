@@ -494,6 +494,34 @@ class SmugPyter(object):
             else:
                 raise Exception("Error: Too many retries.")
                 sys.exit(1)
+                
+    def case_mask_encode(self, smug_key):
+        """
+        Encode the case mask as an integer.
+        """
+        n = 0
+        for i, c in enumerate(smug_key[::-1]):
+            if c.isupper():
+                n += 2 ** i
+        return self.base36encode(n)
+    
+    def case_mask_decode(self, smug_key, case_mask):
+        """
+        Restore letter case to (smug_key).
+        """
+        # drop '0b' binary prefix
+        mask = bin(self.base36decode(case_mask))[2:]
+        if len(mask) > len(smug_key):
+            raise ValueError('(smug_key) length does not match (case_mask) length')
+        # pad mask with '0's if necessary
+        if len(mask) < len(smug_key):
+            mask = ((len(smug_key) - len(mask)) * '0') + mask
+        letters = list(smug_key)
+        for i, (c, m) in enumerate(zip(letters, mask)):
+            if '1' == m:
+                letters[i] = c.upper()
+        return ''.join(letters)    
+
 
     @staticmethod
     def load_image(image_path):
@@ -514,8 +542,9 @@ class SmugPyter(object):
     @staticmethod
     def purify_smugmug_text(in_string):
         """
-        Convert Smugmug unicode strings to ascii equivalents making non-ascii characters 
-        visible as XML escapes. Also convert embedded control character to blanks.
+        Convert Smugmug unicode strings to ascii equivalents making non-ascii
+        characters visible as XML escapes. Also convert embedded control 
+        character to blanks.
         """
         purify = re.sub(' +', ' ', in_string)
         purify = re.sub(r'[\x00-\x1f\x7f-\x9f]', ' ', purify)
@@ -528,3 +557,24 @@ class SmugPyter(object):
                 obj = str(obj, encoding)
         return obj
     
+    @staticmethod
+    def base36encode(number):
+        """
+        Encode positive integer as a base 36 string.
+        """
+        if not isinstance(number, int):
+            raise TypeError('number must be an integer')
+        if number < 0:
+            raise ValueError('number must be positive')
+        alphabet, base36 = ['0123456789abcdefghijklmnopqrstuvwxyz', '']
+        while number:
+            number, i = divmod(number, 36)
+            base36 = alphabet[i] + base36
+        return base36 or alphabet[0]
+
+    @staticmethod
+    def base36decode(number):
+        """
+        Decode base 36 string and return integer.
+        """
+        return int(number, 36)
