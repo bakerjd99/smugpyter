@@ -22,3 +22,22 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 
 For more information, please refer to <http://unlicense.org>
+
+=======================================================================
+SmugPyter contains code from a number of sources. Each source has
+its associated license.  I am leaving how you "merge" licenses to
+others. Most open source licenses essentially ask people to acknowledge
+the work of others. This appendix does just that.
+
+1. https://github.com/marekrei/smuploader
+   MIT license.
+
+2. https://github.com/kevinlester/smugmug_download/blob/master/downloader.py
+   Apache 2.0 license.
+
+3. https://github.com/speedenator/smuploader/blob/master/bin/smregister
+   No current license.
+ 
+4. https://github.com/AndrewsOR/MugMatch
+   MIT license.
+=======================================================================
