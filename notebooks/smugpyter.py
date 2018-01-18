@@ -377,7 +377,8 @@ class SmugPyter(object):
                 album_id = uri.split('/')[-1]
                 album_images = self.get_album_images(album_id)
                 if len(album_images) > 0:
-                    manifest_name = "manifest-%s-%s" % (name, album_id)
+                    mask = self.case_mask_encode(album_id)
+                    manifest_name = "manifest-%s-%s-%s" % (name, album_id, mask)
                     manifest_file = path + "/" + manifest_name + '.txt'
                     #print(manifest_file)
                     self.write_album_manifest(manifest_file, album_images)
