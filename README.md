@@ -4,6 +4,11 @@
 This repository contains a collection of Jupyter notebooks that illustrate how to use Python
 and the SmugMug Version 2.0 API to collect and modify image metadata.
 
+The notebooks are best used in this order.
+
+1. [Downloading SmugMug Captions with Jupyter](https://github.com/bakerjd99/smugpyter/blob/master/notebooks/Downloading%20Smugmug%20Captions%20with%20Jupyter.ipynb)
+
+2. [Setting SmugMug Print Size Keywords with Jupyter and Python](https://github.com/bakerjd99/smugpyter/blob/master/notebooks/Setting%20SmugMug%20Print%20Size%20Keywords%20with%20Jupyter%20and%20Python.ipynb)
 
 John Baker
-December 24, 2017
+January 18, 2018
