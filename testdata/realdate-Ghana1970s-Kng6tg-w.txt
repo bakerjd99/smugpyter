@@ -1,0 +1,16 @@
+ImageKey	AlbumKey	RealDate	FileName
+4wqd5Hr	Kng6tg	1976-09-20T14:00:00	boy corn harvest tamale ghana 1976.jpg
+K7JKbs8	Kng6tg	1976-09-20T15:00:00	corn harvest students tamale ghana.jpg
+nFRxBh2	Kng6tg	1975-08-15T21:00:00	depression catholic school ghana 1975.jpg
+xCdD7V8	Kng6tg	1976-01-01T00:00:00	dry season sun [9622633].jpg
+sTXnpLm	Kng6tg	1975-08-20T15:00:00	ghana cusos beach 1975.jpg
+VG2s4WG	Kng6tg	1976-06-01T00:00:00	ghana girl boat beach.jpg
+kNRs3X8	Kng6tg	1976-01-01T00:00:00	ghana secondary school [12075167].jpg
+Qjs2hr6	Kng6tg	1976-03-01T00:00:00	ghana secondary school student lunch.jpg
+qbXqVgC	Kng6tg	1976-04-05T16:00:00	ghana secondary school teacher bungalows 1976.jpg
+ZdzNXm3	Kng6tg	1975-01-01T00:00:00	ghana two cedis banknote [11695118].jpg
+vF4Bwpg	Kng6tg	1977-03-15T16:01:01	ghanasco track team 1977.jpg
+7WbqpMj	Kng6tg	1976-09-01T00:00:00	girl reading door.jpg
+2cCVDMK	Kng6tg	1976-01-01T00:00:00	girls [10600714].jpg
+36kBgrv	Kng6tg	1976-01-01T00:00:00	me ouagadougou 1976 [362566717].jpg
+2FzVqjP	Kng6tg	1976-01-01T00:00:00	secondary school student [9622147].jpg

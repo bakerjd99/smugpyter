@@ -1,0 +1,14 @@
+ImageKey	AlbumKey	RealDate	FileName
+qjQxPCS	XghWcL	1910-03-03T01:01:01	albert raver aunt may cousin marci daughter.jpg
+HwwwgDs	XghWcL	1864-02-25T00:00:00	augustus a burdick 1864.jpg
+fjcPpCk	XghWcL	1900-01-01T00:00:00	bert raver 1900 [189878796].jpg
+jq54JDC	XghWcL	1880-07-04T00:00:00	eliza jane gilbert b1840 d1915.jpg
+hVw9ng9	XghWcL	1906-02-02T01:01:01	gert parents wedding gilbert paula 1905.jpg
+xT2ptsn	XghWcL	1914-03-03T00:00:00	gilbert tilly eliza leone 1914.jpg
+4sPSDfZ	XghWcL	1894-06-01T00:00:00	julia ann weber rock 1894.jpg
+P2QzsRD	XghWcL	1870-01-01T01:01:01	lydia ayres.jpg
+QNQGMVg	XghWcL	1971-08-08T00:00:00	margo man painting 1971.jpg
+KSMVDvH	XghWcL	1930-01-01T01:01:01	mary theresa rock b1861 d1945.jpg
+k6pnSJ4	XghWcL	1945-01-01T00:00:00	minnie e raver.jpg
+LX8HmDV	XghWcL	1950-01-15T01:01:01	william evert baker portrait 1950.jpg
+bcDxNfx	XghWcL	1946-05-05T14:01:01	william great grandfather 1946.jpg
