@@ -6,9 +6,11 @@ and the SmugMug Version 2.0 API to collect and modify image metadata.
 
 The notebooks are best used in this order.
 
-1. [Downloading SmugMug Captions with Jupyter](https://github.com/bakerjd99/smugpyter/blob/master/notebooks/Downloading%20Smugmug%20Captions%20with%20Jupyter.ipynb)
+1. [Getting Ready to use the SmugMug API with Python and Jupyter](https://github.com/bakerjd99/smugpyter/blob/master/notebooks/Getting%20Ready%20to%20use%20the%20SmugMug%20API%20with%20Python%20and%20Jupyter.ipynb)
 
-2. [Setting SmugMug Print Size Keywords with Jupyter and Python](https://github.com/bakerjd99/smugpyter/blob/master/notebooks/Setting%20SmugMug%20Print%20Size%20Keywords%20with%20Jupyter%20and%20Python.ipynb)
+2. [Downloading SmugMug Captions with Python and Jupyter](https://github.com/bakerjd99/smugpyter/blob/master/notebooks/Downloading%20Smugmug%20Captions%20with%20Jupyter%20and%20Python.ipynb)
+
+3. [Setting SmugMug Print Size Keywords with Jupyter and Python](https://github.com/bakerjd99/smugpyter/blob/master/notebooks/Setting%20SmugMug%20Print%20Size%20Keywords%20with%20Jupyter%20and%20Python.ipynb)
 
 John Baker
-January 18, 2018
+January 20, 2018
