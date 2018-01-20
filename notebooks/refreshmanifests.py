@@ -3,4 +3,4 @@
 import smugpyter
 
 smugmug = smugpyter.SmugPyter()
-smugmug.download_smugmug_mirror()
+smugmug.download_smugmug_mirror(func_album=smugmug.write_album_manifest)

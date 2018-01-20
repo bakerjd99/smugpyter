@@ -1,6 +1,7 @@
 # code from:
 # https://github.com/speedenator/smuploader/blob/master/bin/smregister
 # https://github.com/kevinlester/smugmug_download/blob/master/downloader.py
+# https://github.com/AndrewsOR/MugMatch/blob/master/mugMatch.py
 # modified for python 3.6/jupyter environment - modifications assisted by 2to3 tool 
 
 from rauth.service import OAuth1Service
@@ -227,11 +228,11 @@ class SmugPyter(object):
             for image in (response['Response']['AlbumImage'] if 'AlbumImage' in response['Response'] else []): 
                 clean_caption = self.purify_smugmug_text(image["Caption"])
                 clean_keywords = self.purify_smugmug_text(image["Keywords"])
-                images.append({"ImageKey": image['ImageKey'], "FileName": image["FileName"], 
-                               "Latitude": image["Latitude"], "Longitude": image["Longitude"], 
-                               "Altitude": image["Altitude"], 
+                images.append({"ImageKey": image['ImageKey'], "AlbumKey": album_id, "FileName": image["FileName"], 
+                               "ArchivedMD5": image["ArchivedMD5"], "ArchivedSize": image["ArchivedSize"],
+                               "Latitude": image["Latitude"], "Longitude": image["Longitude"], "Altitude": image["Altitude"], 
                                "OriginalHeight": image["OriginalHeight"], "OriginalWidth": image["OriginalWidth"],
-                               "Date": image["Date"], "LastUpdated": image["LastUpdated"], "Uri": image["Uri"], 
+                               "UploadDate": image["Date"], "LastUpdated": image["LastUpdated"], "Uri": image["Uri"], 
                                "ThumbnailUrl": image["ThumbnailUrl"], 
                                "Keywords": clean_keywords, "Caption": clean_caption})
 
@@ -273,20 +274,29 @@ class SmugPyter(object):
       
     def get_album_image_real_dates(self, album_images):
         """
-        Get a list of {ImageKey, RealDate} dictionaries for (album_images). 
+        Get a list of {ImageKey, AlbumKey, RealDate, FileName} dictionaries 
+        for (album_images). The performance of this function is mostly appalling
+        as we must make a web request for every single image date. 
+        
+            smugmug = SmugPyter()
+            album_images = smugmug.get_album_images('XghWcL')
+            smugmug.get_album_image_real_dates(album_images)
         """
         image_keys = [i["ImageKey"] for i in album_images]
+        image_files = [i["FileName"] for i in album_images]
+        album_keys = [i["AlbumKey"] for i in album_images]
         image_dates = []
         start = 1
         stepsize = 500
         params = {'start': start, 'count': stepsize}
         headers = {'Accept': 'application/json'}
         # this is ugly but I don't see any other way to get the original image EXIF dates
-        for key in image_keys:
-            response = self.request('GET', smugmug.smugmug_api_base_url + "/image/" + key + "!metadata", 
+        for key, imfile, alkey in zip(image_keys, image_files, album_keys):
+            response = self.request('GET', self.smugmug_api_base_url + "/image/" + key + "!metadata", 
                                     params=params, headers=headers)
             image_date = self.get_image_date(response['Response']['ImageMetadata'])
-            image_dates.append({"ImageKey": key, "RealDate": image_date})    
+            image_dates.append({"ImageKey": key, "AlbumKey": alkey, 
+                                "RealDate": image_date, "FileName": imfile})    
         return image_dates
     
     def get_image_download_url(self, image_id):
@@ -341,11 +351,11 @@ class SmugPyter(object):
         album_key = self.get_album_key(album_id)
         response = self.request('GET', self.smugmug_api_uri, params={'method':'smugmug.albums.getInfo', 
                                                                      'AlbumID':album_id, 'AlbumKey':album_key})
-        info['album_id'] = response['Album']['id']
-        info['album_name'] = response['Album']['Title']
-        info['category_id'] = response['Album']['Category']['id']
-        info['category_name'] = response['Album']['Category']['Name']
-        return info
+        album_info['album_id'] = response['Album']['id']
+        album_info['album_name'] = response['Album']['Title']
+        album_info['category_id'] = response['Album']['Category']['id']
+        album_info['category_name'] = response['Album']['Category']['Name']
+        return album_info
 
     ## Folders
     
@@ -358,7 +368,11 @@ class SmugPyter(object):
         uri = response["Response"]["Node"]["Uris"]["ChildNodes"]["Uri"]
         return uri
         
-    def mirror_folders_offline(self, root_uri, root_dir):
+    def mirror_folders_offline(self, root_uri, root_dir, func_album=None, func_folder=None):
+        """
+        Recursively walk online SmugMug folders and albums and apply
+        functions (func_album) and (func_folder).
+        """
         root_uri = (self.smugmug_base_uri + '%s') % root_uri
         if not '!children' in root_uri:
             root_uri += '!children'
@@ -370,18 +384,15 @@ class SmugPyter(object):
             #print(path)
             os.makedirs(path, exist_ok=True)
             if node["Type"] == 'Folder':
-                self.mirror_folders_offline(node["Uri"], path)
+                if not func_folder == None:
+                    func_folder(name, path)
+                self.mirror_folders_offline(node["Uri"], path, func_album)
             elif node['Type'] == 'Album':
                 print('visiting album ' + name)
                 uri = node["Uris"]["Album"]["Uri"]
                 album_id = uri.split('/')[-1]
-                album_images = self.get_album_images(album_id)
-                if len(album_images) > 0:
-                    mask = self.case_mask_encode(album_id)
-                    manifest_name = "manifest-%s-%s-%s" % (name, album_id, mask)
-                    manifest_file = path + "/" + manifest_name + '.txt'
-                    #print(manifest_file)
-                    self.write_album_manifest(manifest_file, album_images)
+                if not func_album == None:
+                    func_album(album_id, name, path)
             
                 #Queue for download
                 #master_albums_list.append(path)
@@ -390,27 +401,69 @@ class SmugPyter(object):
         #if 'NextPage' in response['Response']['Pages']:
         #    self.mirror_folders_offline(pages['NextPage'], root_dir)
         
-    def download_smugmug_mirror(self):
+    def download_smugmug_mirror(self, func_album=None, func_folder=None):
         """
-        Walk SmugMug folders and albums and mirror selected metadata in (self.root_folder).
+        Walk SmugMug folders and albums and apply functions (func_album) and (func_folder).
+        
+            smugmug = SmugPyter()
+            smugmug.download_smugmug_mirror(func_album=smugmug.write_album_manifest) 
         """
         root_folder = self.local_directory
         folders = self.get_folders()
         for folder in folders:
             root_uri = self.get_child_node_uri(folder["NodeID"])
             top_folder = self.extract_alphanum(folder["Name"])
-            self.mirror_folders_offline(root_uri, root_folder + top_folder)
+            self.mirror_folders_offline(root_uri, root_folder + top_folder, 
+                                        func_album, func_folder)
         print("done")
                      
-    def write_album_manifest(self, manifest_file, album_images):
+    def write_album_manifest(self, album_id, name, path):
         """
         Write TAB delimited file of SmugMug image metadata.
         """
+        album_images = self.get_album_images(album_id)
+        if len(album_images) == 0:
+            print('empty album %s' % name)
+            return None
+        mask = self.case_mask_encode(album_id)
+        manifest_name = "manifest-%s-%s-%s" % (name, album_id, mask)
+        manifest_file = path + "/" + manifest_name + '.txt'
         keys = album_images[0].keys()
         with open(manifest_file, 'w', newline='') as output_file:
             dict_writer = csv.DictWriter(output_file, keys, dialect='excel-tab')
             dict_writer.writeheader()
-            dict_writer.writerows(album_images)       
+            dict_writer.writerows(album_images)
+            
+    def write_album_real_dates(self, album_id, name, path):
+        """
+        Write TAB delimited file of SmugMug image real dates.
+        My image dates vary from fairly reliable EXIF dates
+        to wild guesses about century old prints. SmugMug 
+        requires a full date and it looks in a number
+        of places for full dates, see: (get_image_date).
+        """
+       
+        # skip if folder has a real date file - this is done
+        # to improve the "re-runability" of this slow function
+        # simply delete the real date file to reprocess.
+        mask = self.case_mask_encode(album_id)
+        realdate_name = "realdate-%s-%s-%s" % (name, album_id, mask)
+        realdate_file = path + "/" + realdate_name + '.txt'
+        if os.path.isfile(realdate_file):
+            print('real date file exists - skipping %s' % name)
+            return None
+        
+        album_images = self.get_album_images(album_id)
+        if len(album_images) == 0:
+            print('empty album %s' % name)
+            return None
+       
+        real_dates = self.get_album_image_real_dates(album_images)
+        keys = real_dates[0].keys()
+        with open(realdate_file, 'w', newline='') as output_file:
+            dict_writer = csv.DictWriter(output_file, keys, dialect='excel-tab')
+            dict_writer.writeheader()
+            dict_writer.writerows(real_dates)  
            
     def get_folders(self):
         """
@@ -479,7 +532,7 @@ class SmugPyter(object):
                 shutil.copyfileobj(image_data, f)
             
             # Checking the image
-            image_data_local = SmugMug.load_image(image_path_temp)
+            image_data_local = self.load_image(image_path_temp)
             image_md5sum = hashlib.md5(image_data_local).hexdigest()
             image_size = str(len(image_data_local))
             if image_md5sum != image_info['ArchivedMD5']:
