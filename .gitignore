@@ -1,5 +1,13 @@
 Thumbs.db
 
-## parsed/compiled python files to ignore
+## parsed/compiled and python files to ignore
 *.pyc
+notebooks/credentials.py
+notebooks/wip.py
+notebooks/credentialsTemplate.py
+notebooks/MugMatch-master.zip
+notebooks/mugMatch.py
+notebooks/mugRefactor.py
+
+
 
