@@ -2,6 +2,7 @@
 # https://github.com/speedenator/smuploader/blob/master/bin/smregister
 # https://github.com/kevinlester/smugmug_download/blob/master/downloader.py
 # https://github.com/AndrewsOR/MugMatch/blob/master/mugMatch.py
+
 # modified for python 3.6/jupyter environment - modifications assisted by 2to3 tool 
 
 from rauth.service import OAuth1Service
@@ -30,6 +31,8 @@ class SmugPyter(object):
     smugmug_authorize_uri = 'http://api.smugmug.com/services/oauth/1.0a/authorize'
     smugmug_api_version = 'v2'
     
+    reverse_geocode_url = 'https://maps.googleapis.com/maps/api/geocode/json?latlng='
+    
     # cannot create SmugPyter objects if this file is missing
     smugmug_config = os.path.join(os.path.expanduser("~"), '.smugpyter.cfg')
 
@@ -38,7 +41,6 @@ class SmugPyter(object):
         Constructor. 
         Loads the config file and initialises the smugmug service
         """
-
         self.verbose = verbose
         self.argument_default = 'images'
         self.local_directory = 'c:/SmugMirror/'
@@ -52,6 +54,7 @@ class SmugPyter(object):
             self.access_token = config_parser.get('SMUGMUG','access_token')
             self.access_token_secret = config_parser.get('SMUGMUG','access_token_secret')
             self.local_directory = config_parser.get('SMUGMUG','local_directory')
+            self.google_maps_key = config_parser.get('GOOGLEMAPS','google_maps_key')
         except:
             raise Exception("Config file is missing or corrupted. Run 'python smugpyter.py'")
 
@@ -275,7 +278,9 @@ class SmugPyter(object):
     def get_album_image_real_dates(self, album_images):
         """
         Get a list of {ImageKey, AlbumKey, RealDate, FileName} dictionaries 
-        for (album_images). The performance of this function is mostly appalling
+        for (album_images). 
+        
+        The performance of this function is mostly appalling
         as we must make a web request for every single image date. 
         
             smugmug = SmugPyter()
@@ -437,6 +442,7 @@ class SmugPyter(object):
     def write_album_real_dates(self, album_id, name, path):
         """
         Write TAB delimited file of SmugMug image real dates.
+        
         My image dates vary from fairly reliable EXIF dates
         to wild guesses about century old prints. SmugMug 
         requires a full date and it looks in a number
@@ -596,7 +602,7 @@ class SmugPyter(object):
     @staticmethod
     def purify_smugmug_text(in_string):
         """
-        Convert Smugmug unicode strings to ascii equivalents making non-ascii
+        Convert SmugMug unicode strings to ascii equivalents making non-ascii
         characters visible as XML escapes. Also convert embedded control 
         character to blanks.
         """
