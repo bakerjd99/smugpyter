@@ -26,14 +26,15 @@ class PrintKeys(smugpyter.SmugPyter):
         
         super().__init__(verbose)
 
-        self.smug_print_sizes = self.purify_smugmug_text(self.smug_default_sizes).split()
-        
+        self.smug_print_sizes = self.purify_smugmug_text(self.smug_default_sizes).split()  
         (self.aspect_ratios, self.print_areas, self.size_keywords) = self.set_print_sizes(self.smug_print_sizes)
         
     def aspect_ratio(self, height, width, *, precision=0.005):
+        """ Image aspect ratio """
         return self.round_to( min(height, width) / max(height, width), precision )
 
     def dpi_area(self, height, width, *, dpi=360, precision=0.5):
+        """ Area required for given DPI/PPI """
         return self.round_to( (height * width) / dpi ** 2, precision )   
   
     def set_print_sizes(self, smug_print_sizes):
@@ -53,9 +54,13 @@ class PrintKeys(smugpyter.SmugPyter):
             all_print_areas.append(area)
         aspect_ratios = list(set(all_aspect_ratios))
         
+        allcnt = len(smug_print_sizes)
+        if (allcnt != len(all_aspect_ratios) or allcnt != len(all_print_areas)):
+            raise ValueError('ratio list lengths invalid')
+            
         # group areas and keys by ratios
-        gpa = []
-        gsk = []
+        print_areas = []
+        size_keywords = []
         for ur in aspect_ratios:
             gp = []
             gk = []
@@ -65,10 +70,8 @@ class PrintKeys(smugpyter.SmugPyter):
                     gk.append(sk)
             # insure sublists are sorted by ascending area
             gp , gk = self.dualsort(gp, gk)
-            gpa.append(gp)
-            gsk.append(gk)
-        print_areas = gpa
-        size_keywords = gsk
+            print_areas.append(gp)
+            size_keywords.append(gk)
         
         return (aspect_ratios, print_areas, size_keywords)
     
@@ -83,7 +86,6 @@ class PrintKeys(smugpyter.SmugPyter):
           # (ppi) is identical to dpi here
           key720 = print_size_key(2000, 3000, ppi=720) 
         """
-    
         # basic argument check
         error_message = '(height), (width) must be positive integers'
         if not (isinstance(height, int) and isinstance(width, int)):
@@ -102,17 +104,17 @@ class PrintKeys(smugpyter.SmugPyter):
             if abs(print_ratio - ratio) <= tolerance:
                 print_key = no_pixels
             
-            # not enough or more than enough area
-            if print_area < self.print_areas[i][0]:
-                break
-            elif print_area > self.print_areas[i][-1]:
-                print_key = self.size_keywords[i][-1]
-                break     
-            
-            for j, area in enumerate(self.print_areas[i]):
-                if area >= print_area and 0 < j:
-                    print_key = self.size_keywords[i][j - 1]
+                # not enough or more than enough area
+                if print_area < self.print_areas[i][0]:
                     break
+                elif print_area > self.print_areas[i][-1]:
+                    print_key = self.size_keywords[i][-1]
+                    break     
+                
+                for j, area in enumerate(self.print_areas[i]):
+                    if area >= print_area and 0 < j:
+                        print_key = self.size_keywords[i][j - 1]
+                        break
                     
         return print_key
     
@@ -253,7 +255,6 @@ class PrintKeys(smugpyter.SmugPyter):
         
             standard_keywords('go;ahead;test me;boo    hoo  ; you   are   so; 0x0; united   states')
         """
-    
         # basic argument check
         error_message = '(keywords) must be a string'
         if not isinstance(keywords, str):
@@ -284,4 +285,9 @@ class PrintKeys(smugpyter.SmugPyter):
     def round_to(n, precision):
         correction = 0.5 if n >= 0 else -0.5
         return int( n/precision+correction ) * precision
+    
+
+#if __name__ == '__main__':
+#    pk = PrintKeys()
+#    pk.print_size_key(int(8.5 * 362), 11 * 362)
     
