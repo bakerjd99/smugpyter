@@ -6,4 +6,4 @@ rem have a header row if there are no keyword changes.
 rem assumes (smugpyter, printkeys) is on python sys.path
 python updateprintsizekeywords.py
 
-rem pause 
+pause 

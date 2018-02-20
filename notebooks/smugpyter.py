@@ -6,12 +6,13 @@
 # modified for python 3.6/jupyter environment - modifications assisted by 2to3 tool 
 
 from rauth.service import OAuth1Service
+import requests_oauthlib 
 from string import ascii_letters, digits
 import requests
 import http.client
-import httplib2
+#import httplib2
 import hashlib
-import urllib.request, urllib.parse, urllib.error
+#import urllib.request, urllib.parse, urllib.error
 import time
 import sys
 import os
@@ -31,7 +32,9 @@ class SmugPyter(object):
     smugmug_authorize_uri = 'http://api.smugmug.com/services/oauth/1.0a/authorize'
     smugmug_api_version = 'v2'
     
-    reverse_geocode_url = 'https://maps.googleapis.com/maps/api/geocode/json?latlng='
+    reverse_geocode_url = 'https://maps.googleapis.com/maps/api/geocode/json?latlng=' 
+    
+    auth = None
     
     # cannot create SmugPyter objects if this file is missing
     smugmug_config = os.path.join(os.path.expanduser("~"), '.smugpyter.cfg')
@@ -65,6 +68,10 @@ class SmugPyter(object):
             request_token_url=self.smugmug_request_token_uri,
             access_token_url=self.smugmug_access_token_uri,
             authorize_url=self.smugmug_authorize_uri)
+        
+        # NIMP: we don't need two authorizations - clean up 
+        self.auth = requests_oauthlib.OAuth1(self.consumer_key, self.consumer_secret, self.access_token, 
+                           self.access_token_secret, self.username)
             
         self.request_token, self.request_token_secret = self.smugmug_service.get_request_token(method='GET', params={'oauth_callback':'oob'})
         self.smugmug_session = self.smugmug_service.get_session((self.access_token, self.access_token_secret))
@@ -194,7 +201,6 @@ class SmugPyter(object):
         original image date.
     
         """
-
         if 'DateTimeCreated' in imagemeta_data:
             original_date = imagemeta_data['DateTimeCreated']
             if ('' == original_date) and 'DateTimeModified' in imagemeta_data:
@@ -505,21 +511,22 @@ class SmugPyter(object):
     
     # Upload/download
 
-    def upload_image(self, image_data, image_name, image_type, album_id):
-        """
-        Upload an image.
-        """
-        response = self.request('POST', self.smugmug_upload_uri,
-            data=image_data,
-            header_auth = True,
-            headers={'X-Smug-AlbumUri': "/api/v2/album/"+album_id, 
-                'X-Smug-Version':self.smugmug_api_version, 
-                'X-Smug-ResponseType':'JSON',
-                'Content-MD5': hashlib.md5(image_data).hexdigest(),
-                'X-Smug-FileName':image_name,
-                'Content-Length' : str(len(image_data)),
-                'Content-Type': image_type})
-        return response
+#    def upload_image(self, image_data, image_name, image_type, album_id):
+#        """
+#        Upload an image.
+#        """
+#        response = self.request('POST', self.smugmug_upload_uri,
+#            data=image_data,
+#            header_auth = True,
+#            headers={'X-Smug-AlbumUri': "/api/v2/album/"+album_id, 
+#                'X-Smug-Version':self.smugmug_api_version, 
+#                'X-Smug-ResponseType':'JSON',
+#                'Content-MD5': hashlib.md5(image_data).hexdigest(),
+#                'X-Smug-FileName':image_name,
+#                'Content-Length' : str(len(image_data)),
+#                'Content-Type': image_type})
+#        return response
+    
 
     def download_image(self, image_info, image_path, retries=5):
         """
@@ -555,6 +562,7 @@ class SmugPyter(object):
                 raise Exception("Error: Too many retries.")
                 sys.exit(1)
                 
+                
     def case_mask_encode(self, smug_key):
         """
         Encode the case mask as an integer.
@@ -564,6 +572,7 @@ class SmugPyter(object):
             if c.isupper():
                 n += 2 ** i
         return self.base36encode(n)
+    
     
     def case_mask_decode(self, smug_key, case_mask):
         """
@@ -580,7 +589,64 @@ class SmugPyter(object):
         for i, (c, m) in enumerate(zip(letters, mask)):
             if '1' == m:
                 letters[i] = c.upper()
-        return ''.join(letters)    
+        return ''.join(letters)   
+    
+    
+    def album_id_from_file(self, filename):
+        """
+        Extracts the (album_id, name, mask) from file names. 
+        Depends on file naming conventions.
+        
+            album_id_from_file('c:\SmugMirror\Places\Overseas\Ghana1970s\manifest-Ghana1970s-Kng6tg-w.txt')    
+        """
+        mask, album_id, name = filename.split('-')[::-1][:3]
+        mask = mask.split('.')[0]
+        return (self.case_mask_decode(album_id, mask), name, mask)
+    
+    
+    def changes_filename(self, manifest_file):
+        """
+        Changes file name from manifest file name.
+        """
+        album_id, name, mask = self.album_id_from_file(manifest_file)
+        path = os.path.dirname(manifest_file)
+        changes_name = "changes-%s-%s-%s" % (name, album_id, mask)
+        changes_file = path + "/" + changes_name + '.txt'
+        return changes_file
+    
+    
+    def change_image_keywords(self, image_id, keywords):
+        """
+        Issue API PATCH request to change SmugMug keywords.
+        NIMP: does not follow conventions of other requests 
+        """
+        r = requests.patch(url=self.smugmug_api_base_url + '/image/' + image_id,
+                           auth=self.auth,
+                           data=json.dumps({"Keywords": keywords}),
+                           headers={'Accept':'application/json','Content-Type':'application/json'},
+                           allow_redirects=False)
+        if r.status_code != 301:
+            # NIMP: need a better exception type
+            raise ValueError("PATCH request to change keywords failed")
+
+        return (True, image_id)
+    
+    
+    def change_keywords(self, changes_file):
+        """
+        Change keywords for images in album changes file.
+        """
+        change_count = 0
+        with open(changes_file, 'r') as f:
+            reader = csv.DictReader(f, dialect='excel', delimiter='\t')
+            # NIMP: check that required columns are present                   
+            for row in reader:
+                change_count += 1
+                image_key = row['ImageKey']
+                keywords = row['Keywords']
+                #print(key, keywords)
+                self.change_image_keywords(image_key, keywords)
+        return change_count
 
 
     @staticmethod
@@ -594,10 +660,12 @@ class SmugPyter(object):
         except IOError as e:
             raise "I/O error({0}): {1}".format(e.errno, e.strerror)
         return None
+   
     
     @staticmethod
     def extract_alphanum(in_string):
         return "".join([ch for ch in in_string if ch in (ascii_letters + digits)])
+  
     
     @staticmethod
     def purify_smugmug_text(in_string):
@@ -609,6 +677,7 @@ class SmugPyter(object):
         purify = re.sub(' +', ' ', in_string)
         purify = re.sub(r'[\x00-\x1f\x7f-\x9f]', ' ', purify)
         return purify.encode('ascii', 'xmlcharrefreplace' ).decode('ascii')
+   
     
     @staticmethod
     def decode(obj, encoding='utf-8'):
@@ -616,6 +685,7 @@ class SmugPyter(object):
             if not isinstance(obj, str):
                 obj = str(obj, encoding)
         return obj
+    
     
     @staticmethod
     def base36encode(number):
@@ -632,9 +702,60 @@ class SmugPyter(object):
             base36 = alphabet[i] + base36
         return base36 or alphabet[0]
 
+
     @staticmethod
     def base36decode(number):
         """
         Decode base 36 string and return integer.
         """
         return int(number, 36)
+  
+    
+    @staticmethod
+    def standard_keywords(keywords, *, blank_fill='_', 
+                      split_delimiter=';',
+                      substitutions=[('united_states','usa')]):
+        """
+        Return a list of keywords in standard form.
+        
+        Reduces multiple blanks to one, converts to lower case, and replaces
+        any remaining blanks with (blank_fill). This insures keywords are contigous
+        lower case or hypenated lower case character runs.
+        
+        Note: the odd choice of '_' for the blank fill is because hyphens appear
+        to be stripped from keywords on SmugMug.
+        
+            standard_keywords('go;ahead;test me;boo    hoo  ; you   are   so; 0x0; united   states')
+        """
+        # basic argument check
+        error_message = '(keywords) must be a string'
+        if not isinstance(keywords, str):
+            raise TypeError(error_message)
+        
+        if len(keywords.strip(' ')) == 0:
+            return []
+        else:
+            keys = ' '.join(keywords.split())                         
+            keys = split_delimiter.join([s.strip().lower() for s in keys.split(split_delimiter)])
+            keys = ''.join(blank_fill if c == ' ' else c for c in keys)
+            # replace some keywords with others
+            for k, s in substitutions:
+                keys = keys.replace(k, s)
+            # return sorted list - move size keys to front     
+            keylist = [s for s in keys.split(split_delimiter)]
+            return sorted(keylist)
+    
+    
+    @staticmethod
+    def dualsort(a, b):
+        """
+        Sort lists (a) and (b) using (a) to grade (b).
+        """
+        temp = sorted(zip(a, b), key=lambda x: x[0])
+        return list(map(list, zip(*temp)))
+    
+    
+    @staticmethod
+    def round_to(n, precision):
+        correction = 0.5 if n >= 0 else -0.5
+        return int( n/precision+correction ) * precision

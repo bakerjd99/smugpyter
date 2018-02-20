@@ -21,21 +21,24 @@ class PrintKeys(smugpyter.SmugPyter):
     aspect_ratios = None
     print_areas = None
     size_keywords = None
-    
+
     def __init__(self, verbose=False):
         
         super().__init__(verbose)
 
         self.smug_print_sizes = self.purify_smugmug_text(self.smug_default_sizes).split()  
         (self.aspect_ratios, self.print_areas, self.size_keywords) = self.set_print_sizes(self.smug_print_sizes)
+      
         
     def aspect_ratio(self, height, width, *, precision=0.005):
         """ Image aspect ratio """
-        return self.round_to( min(height, width) / max(height, width), precision )
+        return self.round_to( min(height, width) / max(height, width), precision)
+    
 
     def dpi_area(self, height, width, *, dpi=360, precision=0.5):
         """ Area required for given DPI/PPI """
-        return self.round_to( (height * width) / dpi ** 2, precision )   
+        return self.round_to( (height * width) / dpi ** 2, precision)   
+    
   
     def set_print_sizes(self, smug_print_sizes):
         """
@@ -74,6 +77,7 @@ class PrintKeys(smugpyter.SmugPyter):
             size_keywords.append(gk)
         
         return (aspect_ratios, print_areas, size_keywords)
+    
     
     def print_size_key(self, height, width, *, no_ratio='0z1', no_pixels='0z0', 
                    min_area=17.5, ppi=360, tolerance=0.000005):
@@ -118,6 +122,7 @@ class PrintKeys(smugpyter.SmugPyter):
                     
         return print_key
     
+    
     def update_size_keyword(self, size_keyword, keywords, split_delimiter=';'):
         """
         Update the print size keyword for a single image
@@ -151,6 +156,7 @@ class PrintKeys(smugpyter.SmugPyter):
         outkeys = self.standard_keywords(split_delimiter.join(outkeys))
         return (set(outkeys) == set(inkeys), (split_delimiter+' ').join(outkeys))
     
+    
     def print_keywords(self, manifest_file):
         """
         Set print size keywords for images in album manifest file.
@@ -180,26 +186,6 @@ class PrintKeys(smugpyter.SmugPyter):
             
         return (image_count, change_count, changed_keywords)
     
-    def album_id_from_file(self, filename):
-        """
-        Extracts the (album_id, name, mask) from file names. 
-        Depends on file naming conventions.
-        
-            album_id_from_file('c:\SmugMirror\Places\Overseas\Ghana1970s\manifest-Ghana1970s-Kng6tg-w.txt')    
-        """
-        mask, album_id, name = filename.split('-')[::-1][:3]
-        mask = mask.split('.')[0]
-        return (self.case_mask_decode(album_id, mask), name, mask)
-    
-    def changes_filename(self, manifest_file):
-        """
-        Changes file name from manifest file name.
-        """
-        album_id, name, mask = self.album_id_from_file(manifest_file)
-        path = os.path.dirname(manifest_file)
-        changes_name = "changes-%s-%s-%s" % (name, album_id, mask)
-        changes_file = path + "/" + changes_name + '.txt'
-        return changes_file
     
     def write_size_keyword_changes(self, manifest_file):
         """
@@ -220,6 +206,7 @@ class PrintKeys(smugpyter.SmugPyter):
                 dict_writer.writerows(keyword_changes)    
         return(image_count, change_count)
         
+        
     def update_all_keyword_changes_files(self, root):
         """
         Scan all manifest files in local directories and
@@ -238,54 +225,26 @@ class PrintKeys(smugpyter.SmugPyter):
                     total_images += image_count
                     total_changes += change_count
         print('image count %s, change count %s' % (total_images, total_changes))
-    
-    @staticmethod
-    def standard_keywords(keywords, *, blank_fill='_', 
-                      split_delimiter=';',
-                      substitutions=[('united_states','usa')]):
-        """
-        Return a list of keywords in standard form.
         
-        Reduces multiple blanks to one, converts to lower case, and replaces
-        any remaining blanks with (blank_fill). This insures keywords are contigous
-        lower case or hypenated lower case character runs.
-        
-        Note: the odd choice of '_' for the blank fill is because hyphens appear
-        to be stripped from keywords on SmugMug.
-        
-            standard_keywords('go;ahead;test me;boo    hoo  ; you   are   so; 0x0; united   states')
+
+    def update_all_keyword_changes(self, root):
         """
-        # basic argument check
-        error_message = '(keywords) must be a string'
-        if not isinstance(keywords, str):
-            raise TypeError(error_message)
+        Scan all changes files in local directories
+        and apply keyword changes.
+        """
+        total_changes = 0
+        pattern = "changes-"
+        alist_filter = ['txt'] 
+        for r,d,f in os.walk(root):
+            for file in f:
+                if file[-3:] in alist_filter and pattern in file:
+                    file_name = os.path.join(root,r,file)
+                    change_count = self.change_keywords(file_name)
+                    if change_count > 0:
+                        print(file_name)
+                    total_changes += change_count
+        print('change count %s' % total_changes)
         
-        if len(keywords.strip(' ')) == 0:
-            return []
-        else:
-            keys = ' '.join(keywords.split())                         
-            keys = split_delimiter.join([s.strip().lower() for s in keys.split(split_delimiter)])
-            keys = ''.join(blank_fill if c == ' ' else c for c in keys)
-            # replace some keywords with others
-            for k, s in substitutions:
-                keys = keys.replace(k, s)
-            # return sorted list - move size keys to front     
-            keylist = [s for s in keys.split(split_delimiter)]
-            return sorted(keylist)
-    
-    @staticmethod
-    def dualsort(a, b):
-        """
-        Sort lists (a) and (b) using (a) to grade (b).
-        """
-        temp = sorted(zip(a, b), key=lambda x: x[0])
-        return list(map(list, zip(*temp)))
-    
-    @staticmethod
-    def round_to(n, precision):
-        correction = 0.5 if n >= 0 else -0.5
-        return int( n/precision+correction ) * precision
-    
 
 #if __name__ == '__main__':
 #    pk = PrintKeys()
