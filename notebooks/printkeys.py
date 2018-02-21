@@ -23,9 +23,8 @@ class PrintKeys(smugpyter.SmugPyter):
     size_keywords = None
 
     def __init__(self, verbose=False):
-        
+        """ class constructor """
         super().__init__(verbose)
-
         self.smug_print_sizes = self.purify_smugmug_text(self.smug_default_sizes).split()  
         (self.aspect_ratios, self.print_areas, self.size_keywords) = self.set_print_sizes(self.smug_print_sizes)
       
