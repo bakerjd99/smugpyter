@@ -1,6 +1,6 @@
-# update CSV print size keywords changes files.
-# run after refreshing manifest files.
-# assumes (smugpyter, printkeys, geotagkeys) is on sys.path
+# Update CSV print size keywords changes files.
+# Run after refreshing manifest files: assumes 
+# (smugpyter, printkeys, geotagkeys) is on sys.path
 import printkeys
 import geotagkeys
 
