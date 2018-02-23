@@ -260,5 +260,8 @@ class PrintKeys(smugpyter.SmugPyter):
         print('change count %s' % total_changes)
         
 
+# if __name__ == '__main__':
+    # pk = PrintKeys()
+    # pk.update_all_keyword_changes_files('c:\SmugMirror', merge_changes=True)
     
     
