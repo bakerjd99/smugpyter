@@ -138,7 +138,9 @@ class PrintKeys(smugpyter.SmugPyter):
         if len(keywords.strip(' ')) == 0:
             return (False, size_keyword)
         
-        inkeys = [s.strip().lower() for s in keywords.split(split_delimiter)]
+        keywords = split_delimiter + keywords
+        inkeys = [s.strip().lower() for s in keywords.split(split_delimiter) if len(s) > 0]
+        inkeys = sorted(list(set(inkeys)))
         if 0 == len(inkeys):
             return (False, size_keyword)
         
@@ -156,12 +158,18 @@ class PrintKeys(smugpyter.SmugPyter):
         return (set(outkeys) == set(inkeys), (split_delimiter+' ').join(outkeys))
     
     
-    def print_keywords(self, manifest_file):
+    def print_keywords(self, manifest_file, *, merge_changes=False, split_delimiter=';'):
         """
         Set print size keywords for images in album manifest file.
         Result is a tuple (image_count, change_count, changed_keywords).
         (changed_keyords) is a list of dictionaries in (csv.DictWriter) format.
         """
+        changes_dict = {}
+        if merge_changes:
+            changes_file = self.changes_filename(manifest_file)
+            changes_dict = self.image_dict_from_csv(changes_file)
+        merge_changes = merge_changes and 0 < len(changes_dict)
+                                                 
         changed_keywords = []
         image_count , change_count = 0 , 0
         with open(manifest_file, 'r') as f:
@@ -169,9 +177,16 @@ class PrintKeys(smugpyter.SmugPyter):
             for row in reader:
                 image_count += 1
                 key = row['ImageKey']
+                inwords = row['Keywords']
+                
+                # merge in current changes file keywords
+                if merge_changes:
+                    if key in changes_dict:
+                        inwords = inwords + split_delimiter + changes_dict[key]['Keywords']
+                    
                 height , width = int(row['OriginalHeight']), int(row['OriginalWidth'])
                 size_key = self.print_size_key(height, width)
-                same, keywords = self.update_size_keyword(size_key, row['Keywords'])
+                same, keywords = self.update_size_keyword(size_key, inwords)
                 if not same:
                     change_count += 1
                     changed_keywords.append({'ImageKey': key, 'AlbumKey': row['AlbumKey'],
@@ -186,7 +201,7 @@ class PrintKeys(smugpyter.SmugPyter):
         return (image_count, change_count, changed_keywords)
     
     
-    def write_size_keyword_changes(self, manifest_file):
+    def write_size_keyword_changes(self, manifest_file, *, merge_changes=False):
         """
         Write TAB delimited file of changed metadata.
         Return album and keyword (image_count, change_count) tuple.
@@ -194,7 +209,7 @@ class PrintKeys(smugpyter.SmugPyter):
             manifest_file = 'c:\SmugMirror\Places\Overseas\Ghana1970s\manifest-Ghana1970s-Kng6tg-w.txt'
             write_size_keyword_changes(manifest_file)  
         """
-        image_count, change_count, keyword_changes = self.print_keywords(manifest_file)
+        image_count, change_count, keyword_changes = self.print_keywords(manifest_file, merge_changes=merge_changes)
         changes_file = self.changes_filename(manifest_file)
         keys = keyword_changes[0].keys()
         with open(changes_file, 'w', newline='') as output_file:
@@ -206,7 +221,7 @@ class PrintKeys(smugpyter.SmugPyter):
         return(image_count, change_count)
         
         
-    def update_all_keyword_changes_files(self, root):
+    def update_all_keyword_changes_files(self, root, *, merge_changes=False):
         """
         Scan all manifest files in local directories and
         generate TAB delimited CSV keyword changes files.
@@ -218,7 +233,7 @@ class PrintKeys(smugpyter.SmugPyter):
             for file in f:
                 if file[-3:] in alist_filter and pattern in file:
                     file_name = os.path.join(root,r,file)
-                    image_count, change_count = self.write_size_keyword_changes(file_name)
+                    image_count, change_count = self.write_size_keyword_changes(file_name, merge_changes=merge_changes)
                     if change_count > 0:
                         print(file_name)
                     total_images += image_count
@@ -245,7 +260,5 @@ class PrintKeys(smugpyter.SmugPyter):
         print('change count %s' % total_changes)
         
 
-#if __name__ == '__main__':
-#    pk = PrintKeys()
-#    pk.print_size_key(int(8.5 * 362), 11 * 362)
+    
     

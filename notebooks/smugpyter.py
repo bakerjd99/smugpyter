@@ -647,7 +647,25 @@ class SmugPyter(object):
                 #print(key, keywords)
                 self.change_image_keywords(image_key, keywords)
         return change_count
-
+    
+    
+    def image_dict_from_csv(self, image_file):
+        """
+        Load manifest or changes TAB delimited CSV file
+        as a single dictionary keyed on (ImageKey).
+        
+            image_dict_from_csv('c:\SmugMirror\Places\Overseas\Ghana1970s\manifest-Ghana1970s-Kng6tg-w.txt') 
+        """
+        image_dict = {}
+        with open(image_file, 'r') as f:
+            reader = csv.DictReader(f, dialect='excel', delimiter='\t')
+            for row in reader:
+                if row["ImageKey"] is None or row["ImageKey"] == "":
+                    raise ValueError("(ImageKey) missing in -> " + image_file)
+                image_key = row['ImageKey']
+                image_dict[image_key] = row
+        return image_dict
+        
 
     @staticmethod
     def load_image(image_path):
