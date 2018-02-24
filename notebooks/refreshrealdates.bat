@@ -1,7 +1,5 @@
 echo off
-rem run album CSV real dates refresh script
-rem assumes (smugpyter) is on python sys.path
+rem Run album CSV real dates refresh script: assumes (smugpyter) is on python sys.path
 python refreshrealdates.py
 
-rem 
 pause

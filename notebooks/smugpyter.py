@@ -1,8 +1,21 @@
-# code from:
+# smugpyter.py
+#
+# This class uses the SmugMug API 2.0 to collect and archive
+# SmugMug image metadata. The metadata is downloaded to local
+# directories that mirror the structure of online SmugMug
+# folders and albums. Image metadata is stored in 
+# durable version control friendly TAB delimted CSV files.
+# 
+# Thumbnail and small versions of online images are also
+# downloaded and stored in appropriate directories. Large sizes
+# are not downloaded as all originals are stored in offline
+# "secure undisclosed locations."
+#
+# Much of the code in this class derives from:
 # https://github.com/speedenator/smuploader/blob/master/bin/smregister
 # https://github.com/kevinlester/smugmug_download/blob/master/downloader.py
 # https://github.com/AndrewsOR/MugMatch/blob/master/mugMatch.py
-
+#
 # modified for python 3.6/jupyter environment - modifications assisted by 2to3 tool 
 
 from rauth.service import OAuth1Service
@@ -35,11 +48,13 @@ class SmugPyter(object):
     reverse_geocode_url = 'https://maps.googleapis.com/maps/api/geocode/json?latlng=' 
     
     auth = None
+    yammer = False
     
     # cannot create SmugPyter objects if this file is missing
     smugmug_config = os.path.join(os.path.expanduser("~"), '.smugpyter.cfg')
 
-    def __init__(self, verbose=False):
+
+    def __init__(self, verbose=False, yammer=False):
         """
         Constructor. 
         Loads the config file and initialises the smugmug service
@@ -47,6 +62,7 @@ class SmugPyter(object):
         self.verbose = verbose
         self.argument_default = 'images'
         self.local_directory = 'c:/SmugMirror/'
+        self.yammer = yammer
         
         config_parser = configparser.RawConfigParser()
         config_parser.read(SmugPyter.smugmug_config)
@@ -75,7 +91,8 @@ class SmugPyter(object):
             
         self.request_token, self.request_token_secret = self.smugmug_service.get_request_token(method='GET', params={'oauth_callback':'oob'})
         self.smugmug_session = self.smugmug_service.get_session((self.access_token, self.access_token_secret))
-        
+    
+    
     def get_authorize_url(self):
         """
         Returns the URL for OAuth authorisation.
@@ -84,6 +101,7 @@ class SmugPyter(object):
                                                                                                params={'oauth_callback':'oob'})
         authorize_url = self.smugmug_service.get_authorize_url(self.request_token, Access='Full', Permissions='Add')
         return authorize_url
+
 
     def get_access_token(self, verifier):
         """
@@ -94,6 +112,7 @@ class SmugPyter(object):
                                     request_token_secret=self.request_token_secret,
                                     params={'oauth_verifier': verifier})                            
         return self.access_token, self.access_token_secret
+
 
     def request_once(self, method, url, params={}, headers={}, files={}, data=None, header_auth=False):
         """
@@ -119,6 +138,7 @@ class SmugPyter(object):
             pass
         return data
 
+
     def request(self, method, url, params={}, headers={}, files={}, data=None, header_auth=False, retries=5, sleep=5):
         """
         Performs requests, with multiple attempts if needed.
@@ -140,7 +160,6 @@ class SmugPyter(object):
         print('Error: Too many retries, giving up.')
         sys.exit(1)
 
-    ## Album
 
     def get_albums(self):
         """
@@ -166,6 +185,7 @@ class SmugPyter(object):
                 break
         return albums   
 
+
     def get_album_names(self):
         """
         Return list of album names.
@@ -173,6 +193,7 @@ class SmugPyter(object):
         albums = self.get_albums()
         album_names = [a["Title"] for a in albums]
         return album_names
+
 
     def get_album_id(self, album_name):
         """
@@ -187,6 +208,7 @@ class SmugPyter(object):
                 album_id = album['AlbumKey']
                 break
         return album_id   
+ 
     
     def get_image_date(self, imagemeta_data):
     
@@ -211,6 +233,7 @@ class SmugPyter(object):
             original_date = ''
    
         return original_date
+
 
     def get_album_images(self, album_id, argument='images'):
         """
@@ -255,6 +278,7 @@ class SmugPyter(object):
         images = sorted(images, key = lambda k: k["FileName"])
         return images
 
+
     def get_album_image_names(self, album_images): 
         """
         Get a list of {ImageKey, FileName} dictionaries for (album_images).
@@ -265,14 +289,16 @@ class SmugPyter(object):
         """
         image_names = [{"ImageKey": i["ImageKey"], "FileName": i["FileName"]} for i in album_images]
         return image_names
-       
+  
+     
     def get_album_image_captions(self, album_images):
         """
         Get a list of {ImageKey, Caption} dictionaries for (album_images).
         """
         image_captions = [{"ImageKey": i["ImageKey"], "Caption": i["Caption"]} for i in album_images]
         return image_captions
-      
+ 
+     
     def get_latitude_longitude_altitude(self, album_images):
         """
         Get a list of {ImageKey, (Latitute,Longitude,Altitude)} dictionaries for (album_images).
@@ -280,18 +306,22 @@ class SmugPyter(object):
         images_lba = [{"ImageKey": i["ImageKey"], "LatLongAlt": (i["Latitude"], i["Longitude"], i["Altitude"])} 
                       for i in album_images]
         return images_lba
-      
-    def get_album_image_real_dates(self, album_images):
+  
+    
+    def get_album_image_real_dates(self, album_images, *, realdate_dict=None):
         """
         Get a list of {ImageKey, AlbumKey, RealDate, FileName} dictionaries 
         for (album_images). 
         
         The performance of this function is mostly appalling
         as we must make a web request for every single image date. 
+        Hence, when (realdate_dict) is not None look up real dates
+        to avoid time consuming API calls. These dates are quite
+        stable and seldom change.
         
-            smugmug = SmugPyter()
-            album_images = smugmug.get_album_images('XghWcL')
-            smugmug.get_album_image_real_dates(album_images)
+            smug = SmugPyter(yammer=True)
+            album_images = smug.get_album_images('XghWcL')
+            smug.get_album_image_real_dates(album_images)
         """
         image_keys = [i["ImageKey"] for i in album_images]
         image_files = [i["FileName"] for i in album_images]
@@ -301,14 +331,27 @@ class SmugPyter(object):
         stepsize = 500
         params = {'start': start, 'count': stepsize}
         headers = {'Accept': 'application/json'}
-        # this is ugly but I don't see any other way to get the original image EXIF dates
+        
         for key, imfile, alkey in zip(image_keys, image_files, album_keys):
-            response = self.request('GET', self.smugmug_api_base_url + "/image/" + key + "!metadata", 
-                                    params=params, headers=headers)
-            image_date = self.get_image_date(response['Response']['ImageMetadata'])
+            if key in realdate_dict:
+                image_dict = realdate_dict[key]
+                if 'RealDate' in image_dict:
+                    image_date = image_dict['RealDate']
+                else:
+                    print('missing (RealDate) key skipping -> ' + imfile)
+                    continue
+            else:
+                # this is ugly but I don't see any other way to get the original image EXIF dates
+                if self.yammer:
+                    print('getting real date -> ' + imfile)
+                response = self.request('GET', self.smugmug_api_base_url + "/image/" + key + "!metadata", 
+                                        params=params, headers=headers)
+                image_date = self.get_image_date(response['Response']['ImageMetadata'])
+                
             image_dates.append({"ImageKey": key, "AlbumKey": alkey, 
                                 "RealDate": image_date, "FileName": imfile})    
         return image_dates
+  
     
     def get_image_download_url(self, image_id):
         """
@@ -317,9 +360,11 @@ class SmugPyter(object):
         response = self.request('GET', self.smugmug_api_base_url + "/image/"+image_id+"!download", 
                                 headers={'Accept': 'application/json'})
         return response['Response']['ImageDownload']['Url']
+  
     
     def create_nice_name(self, name):
         return "-".join([re.sub(r'[\W_]+', '', x) for x in name.strip().split()]).title()
+   
     
     def create_album(self, album_name, password = None, folder_id = None, template_id = None):
         """
@@ -347,6 +392,7 @@ class SmugPyter(object):
 
         return response
 
+
     def get_album_info(self, album_id):
         """
         Get info for an album.
@@ -368,7 +414,6 @@ class SmugPyter(object):
         album_info['category_name'] = response['Album']['Category']['Name']
         return album_info
 
-    ## Folders
     
     def get_child_node_uri(self, node_id):
         """
@@ -378,7 +423,8 @@ class SmugPyter(object):
                                  headers={'Accept': 'application/json'})
         uri = response["Response"]["Node"]["Uris"]["ChildNodes"]["Uri"]
         return uri
-        
+  
+      
     def mirror_folders_offline(self, root_uri, root_dir, func_album=None, func_folder=None):
         """
         Recursively walk online SmugMug folders and albums and apply
@@ -411,7 +457,8 @@ class SmugPyter(object):
         
         #if 'NextPage' in response['Response']['Pages']:
         #    self.mirror_folders_offline(pages['NextPage'], root_dir)
-        
+  
+      
     def download_smugmug_mirror(self, func_album=None, func_folder=None):
         """
         Walk SmugMug folders and albums and apply functions (func_album) and (func_folder).
@@ -427,7 +474,8 @@ class SmugPyter(object):
             self.mirror_folders_offline(root_uri, root_folder + top_folder, 
                                         func_album, func_folder)
         print("done")
-                     
+ 
+                    
     def write_album_manifest(self, album_id, name, path):
         """
         Write TAB delimited file of SmugMug image metadata.
@@ -444,7 +492,8 @@ class SmugPyter(object):
             dict_writer = csv.DictWriter(output_file, keys, dialect='excel-tab')
             dict_writer.writeheader()
             dict_writer.writerows(album_images)
-            
+  
+          
     def write_album_real_dates(self, album_id, name, path):
         """
         Write TAB delimited file of SmugMug image real dates.
@@ -455,28 +504,36 @@ class SmugPyter(object):
         of places for full dates, see: (get_image_date).
         """
        
-        # skip if folder has a real date file - this is done
-        # to improve the "re-runability" of this slow function
-        # simply delete the real date file to reprocess.
+        # If the current folder has a real dates file look 
+        # up dates in this file for any images that exist in it.
+        # This insures we only go to SmugMug for images
+        # that do not have real image dates. To force reprocessing
+        # delete images from the real dates file or
+        # to reprocess all the dates in an album delete
+        # the real dates file.
         mask = self.case_mask_encode(album_id)
         realdate_name = "realdate-%s-%s-%s" % (name, album_id, mask)
         realdate_file = path + "/" + realdate_name + '.txt'
+        realdate_dict = {}
         if os.path.isfile(realdate_file):
-            print('real date file exists - skipping %s' % name)
-            return None
+            realdate_dict = self.image_dict_from_csv(realdate_file)
         
         album_images = self.get_album_images(album_id)
         if len(album_images) == 0:
             print('empty album %s' % name)
             return None
        
-        real_dates = self.get_album_image_real_dates(album_images)
+        real_dates = self.get_album_image_real_dates(album_images, realdate_dict=realdate_dict)
+        if len(real_dates) == 0:
+            return None
+        
         keys = real_dates[0].keys()
         with open(realdate_file, 'w', newline='') as output_file:
             dict_writer = csv.DictWriter(output_file, keys, dialect='excel-tab')
             dict_writer.writeheader()
             dict_writer.writerows(real_dates)  
-           
+  
+         
     def get_folders(self):
         """
         Get a list of folder names under the user.
@@ -490,6 +547,7 @@ class SmugPyter(object):
                             "NodeID": folder["NodeID"], "UrlName": folder["UrlName"]})
         return folders    
 
+
     def get_folder_names(self):
         """
         Return list of (top-level) folder names.
@@ -497,6 +555,7 @@ class SmugPyter(object):
         folders = self.get_folders()
         folder_names = [f["Name"] for f in folders]
         return folder_names   
+
 
     def get_folder_id(self, folder_name):
         """
@@ -508,24 +567,6 @@ class SmugPyter(object):
                 folder_id = folder['UrlName']
                 break
         return folder_id
-    
-    # Upload/download
-
-#    def upload_image(self, image_data, image_name, image_type, album_id):
-#        """
-#        Upload an image.
-#        """
-#        response = self.request('POST', self.smugmug_upload_uri,
-#            data=image_data,
-#            header_auth = True,
-#            headers={'X-Smug-AlbumUri': "/api/v2/album/"+album_id, 
-#                'X-Smug-Version':self.smugmug_api_version, 
-#                'X-Smug-ResponseType':'JSON',
-#                'Content-MD5': hashlib.md5(image_data).hexdigest(),
-#                'X-Smug-FileName':image_name,
-#                'Content-Length' : str(len(image_data)),
-#                'Content-Type': image_type})
-#        return response
     
 
     def download_image(self, image_info, image_path, retries=5):
