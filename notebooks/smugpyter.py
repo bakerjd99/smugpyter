@@ -623,7 +623,6 @@ class SmugPyter(object):
             with open(image_path_temp, 'wb') as f:
                 shutil.copyfileobj(image_data, f)
             
-            # WARNING: extensions may not be (jpg)
             os.rename(image_path_temp, image_path + new_name)
             break
 
@@ -659,10 +658,17 @@ class SmugPyter(object):
                 new_name = key + ' ' + file_name
                 # replace blanks with hyphens - simplifies LaTeX inclusions
                 new_name = new_name.replace(' ', '-')
+                
+                # if an image already exists skip downloading
+                # force reprocessing by deleting images
+                if os.path.isfile(image_path + new_name):
+                    continue
+                
                 thumb_url = row['ThumbnailUrl']
                 new_url = self.larger_from_thumb_url(thumb_url)
                 #print(new_url, image_path, new_name )
                 self.download_sample_image(new_url, image_path, new_name)
+                new_count += 1
                 
         return (image_count, new_count)
     
