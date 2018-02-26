@@ -366,36 +366,39 @@ class SmugPyter(object):
         return "-".join([re.sub(r'[\W_]+', '', x) for x in name.strip().split()]).title()
    
     
-    def create_album(self, album_name, password = None, folder_id = None, template_id = None):
-        """
-        Create a new album.
-        """
-        data = {"Title": album_name, "NiceName": self.create_nice_name(album_name), 
-                'OriginalSizes' : 1, 'Filenames' : 1}
-        if password != None:
-            data['Password'] = password
-
-        if template_id != None:
-            data["AlbumTemplateUri"] = template_id
-            data["FolderUri"] = "/api/v2/folder/user/"+self.username+("/"+folder_id if folder_id != None else "")+"!albums"
-            response = self.request('POST', 
-                                    self.smugmug_api_base_url + "/folder/user/"+self.username+("/"+folder_id if folder_id != None else "")+"!albumfromalbumtemplate", 
-                                    data=json.dumps(data), headers={'Accept': 'application/json', 'Content-Type': 'application/json'})
-        else:
-            response = self.request('POST', 
-                                    self.smugmug_api_base_url + "/folder/user/"+self.username + ("/"+folder_id if folder_id != None else "") + "!albums", 
-                                    data=json.dumps(data), 
-                                    headers={'Accept': 'application/json', 'Content-Type': 'application/json'})
-
-        if self.verbose == True:
-            print(json.dumps(response))
-
-        return response
+#    def create_album(self, album_name, password = None, folder_id = None, template_id = None):
+#        """
+#        Create a new album.
+#        """
+#        data = {"Title": album_name, "NiceName": self.create_nice_name(album_name), 
+#                'OriginalSizes' : 1, 'Filenames' : 1}
+#        if password != None:
+#            data['Password'] = password
+#
+#        if template_id != None:
+#            data["AlbumTemplateUri"] = template_id
+#            data["FolderUri"] = "/api/v2/folder/user/"+self.username+("/"+folder_id if folder_id != None else "")+"!albums"
+#            response = self.request('POST', 
+#                                    self.smugmug_api_base_url + "/folder/user/"+self.username+("/"+folder_id if folder_id != None else "")+"!albumfromalbumtemplate", 
+#                                    data=json.dumps(data), headers={'Accept': 'application/json', 'Content-Type': 'application/json'})
+#        else:
+#            response = self.request('POST', 
+#                                    self.smugmug_api_base_url + "/folder/user/"+self.username + ("/"+folder_id if folder_id != None else "") + "!albums", 
+#                                    data=json.dumps(data), 
+#                                    headers={'Accept': 'application/json', 'Content-Type': 'application/json'})
+#
+#        if self.verbose == True:
+#            print(json.dumps(response))
+#
+#        return response
 
 
     def get_album_info(self, album_id):
         """
         Get info for an album.
+            
+            smug = SmugPyter()
+            smug.get_album_info('QPZ5K7')
         """
         if self.verbose == True:
             print("Getting albums")
@@ -463,8 +466,8 @@ class SmugPyter(object):
         """
         Walk SmugMug folders and albums and apply functions (func_album) and (func_folder).
         
-            smugmug = SmugPyter()
-            smugmug.download_smugmug_mirror(func_album=smugmug.write_album_manifest) 
+            smug = SmugPyter()
+            smug.download_smugmug_mirror(func_album=smug.write_album_manifest) 
         """
         root_folder = self.local_directory
         folders = self.get_folders()
@@ -568,40 +571,135 @@ class SmugPyter(object):
                 break
         return folder_id
     
-
-    def download_image(self, image_info, image_path, retries=5):
+    
+    def larger_from_thumb_url(self, thumb_url, *, url_size='M'):
         """
-        Download an image from a url.
+        Convert a thumbnail size url to a small or medium url.
+        The TAB delimited manifest files contain (ThumbnailUrl)s
+        that point to online SmugMug images. It is much faster
+        to convert these stored urls to larger sizes  than issue 
+        API calls.
         """
+        if not url_size in ['S', 'M']:
+            raise ValueError("(url_size) must be 'S' or 'M'")
+            
+        new_url = thumb_url.split('/')
+        
+        if not 'Th.' == new_url[-1][-6:-3]:
+             raise ValueError('(thumb_url) is not a thumbnail -> ' + thumb_url) 
+        
+        file_ext = new_url[-1][-3:]
+        new_url[-2] = url_size
+        file_name = new_url[-1][:-6] + url_size
+        file_name = file_name + '.' + file_ext
+        new_url[-1] = file_name
+        return '/'.join(new_url)
+    
+    
+    def download_sample_image(self, image_url, image_path, new_name, retries=3):
+        """
+        Download a sample image. Sample images are smaller versions of full size 
+        images. I typically seek the medium size and fall back to small or thumb if
+        medium is not available. Medium is large enough to include in documents
+        and contains enough pixels to determine dominant image color and tone.
+        
+            image_path = 'C:\\SmugMirror\\Places\Overseas\\BeirutLebanon1960s\\'
+            image_url = 'https://photos.smugmug.com/Places/Overseas-Places/Beirut-Lebanon-1960s-1/i-nWGfNVx/1/88011d7e/Th/me%20on%20ship%20to%20egypt-Th.jpg'
+            new_name = 'test-new-name.jpg'
+            smug = SmugPyter()
+            image_url = smug.larger_from_thumb_url(image_url)
+            smug.download_sample_image(image_url, image_path, new_name) 
+        """
+        
         count = retries
-        image_url = self.get_image_download_url(image_info["ImageKey"])
         image_path_temp = image_path + "_temp"
-
         while count > 0:
             count -= 1
+            
             # Doing the actual downloading
+            print('downloading -> ' + new_name)
             image_data = self.smugmug_session.request(url=image_url, method='GET', stream=True).raw
             image_data.decode_content = True
             with open(image_path_temp, 'wb') as f:
                 shutil.copyfileobj(image_data, f)
             
-            # Checking the image
-            image_data_local = self.load_image(image_path_temp)
-            image_md5sum = hashlib.md5(image_data_local).hexdigest()
-            image_size = str(len(image_data_local))
-            if image_md5sum != image_info['ArchivedMD5']:
-                raise Exception("MD5 sum doesn't match.")
-            elif image_size != str(image_info['OriginalSize']):
-                raise Exception("Image size doesn't match.")
-            else:
-                os.rename(image_path_temp, image_path)
-                break
+            # WARNING: extensions may not be (jpg)
+            os.rename(image_path_temp, image_path + new_name)
+            break
 
             if count > 0:
                 print("Retrying...")
             else:
                 raise Exception("Error: Too many retries.")
-                sys.exit(1)
+                #probably no medium or small size - try getting the thumb
+                
+    
+    def download_album_sample_images(self, manifest_file):
+        """
+        Download sample images for images listed in (manifest_file).
+        Result is a tuple (image_count, new_count).
+        
+            smug = SmugPyter()
+            manifest = 'C:\SmugMirror\Places\Overseas\BeirutLebanon1960s\manifest-BeirutLebanon1960s-QPZ5K7-1m.txt'
+            smug.download_album_sample_images(manifest)
+        """
+        image_count , new_count = 0 , 0
+        # drop file name
+        image_path = manifest_file.split('\\')
+        image_path[-1] = ''
+        image_path = '\\'.join(image_path) + '\\'
+        #print(image_path)
+        with open(manifest_file, 'r') as f:
+            reader = csv.DictReader(f, dialect='excel', delimiter='\t')                     
+            for row in reader:
+                image_count += 1
+                key = row['ImageKey'].strip()
+                key = key + '-' + self.case_mask_encode(key)
+                file_name = row['FileName'].strip()
+                new_name = key + ' ' + file_name
+                # replace blanks with hyphens - simplifies LaTeX inclusions
+                new_name = new_name.replace(' ', '-')
+                thumb_url = row['ThumbnailUrl']
+                new_url = self.larger_from_thumb_url(thumb_url)
+                #print(new_url, image_path, new_name )
+                self.download_sample_image(new_url, image_path, new_name)
+                
+        return (image_count, new_count)
+    
+        
+#    def download_image(self, image_info, image_path, retries=5):
+#        """
+#        Download an image from a url.
+#        """
+#        count = retries
+#        image_url = self.get_image_download_url(image_info["ImageKey"])
+#        image_path_temp = image_path + "_temp"
+#
+#        while count > 0:
+#            count -= 1
+#            # Doing the actual downloading
+#            image_data = self.smugmug_session.request(url=image_url, method='GET', stream=True).raw
+#            image_data.decode_content = True
+#            with open(image_path_temp, 'wb') as f:
+#                shutil.copyfileobj(image_data, f)
+#            
+#            # Checking the image
+#            image_data_local = self.load_image(image_path_temp)
+#            image_md5sum = hashlib.md5(image_data_local).hexdigest()
+#            image_size = str(len(image_data_local))
+#            if image_md5sum != image_info['ArchivedMD5']:
+#                raise Exception("MD5 sum doesn't match.")
+#            elif image_size != str(image_info['OriginalSize']):
+#                raise Exception("Image size doesn't match.")
+#            else:
+#                os.rename(image_path_temp, image_path)
+#                break
+#
+#            if count > 0:
+#                print("Retrying...")
+#            else:
+#                raise Exception("Error: Too many retries.")
+#                sys.exit(1)
                 
                 
     def case_mask_encode(self, smug_key):
@@ -695,7 +793,8 @@ class SmugPyter(object):
         Load manifest or changes TAB delimited CSV file
         as a single dictionary keyed on (ImageKey).
         
-            image_dict_from_csv('c:\SmugMirror\Places\Overseas\Ghana1970s\manifest-Ghana1970s-Kng6tg-w.txt') 
+            smug = SmugPyter()
+            smug.image_dict_from_csv('c:\SmugMirror\Places\Overseas\Ghana1970s\manifest-Ghana1970s-Kng6tg-w.txt') 
         """
         image_dict = {}
         with open(image_file, 'r') as f:
