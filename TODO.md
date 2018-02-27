@@ -1,5 +1,5 @@
-`SmugPyter` TODO
-================
+![](todo.png) `SmugPyter` TODO
+==============================
 
 Pending and considered changes for `SmugPyter` and its subclasses. 
 Browse the revision history of this file to review changes. The
