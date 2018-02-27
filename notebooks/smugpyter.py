@@ -365,32 +365,6 @@ class SmugPyter(object):
     def create_nice_name(self, name):
         return "-".join([re.sub(r'[\W_]+', '', x) for x in name.strip().split()]).title()
    
-    
-#    def create_album(self, album_name, password = None, folder_id = None, template_id = None):
-#        """
-#        Create a new album.
-#        """
-#        data = {"Title": album_name, "NiceName": self.create_nice_name(album_name), 
-#                'OriginalSizes' : 1, 'Filenames' : 1}
-#        if password != None:
-#            data['Password'] = password
-#
-#        if template_id != None:
-#            data["AlbumTemplateUri"] = template_id
-#            data["FolderUri"] = "/api/v2/folder/user/"+self.username+("/"+folder_id if folder_id != None else "")+"!albums"
-#            response = self.request('POST', 
-#                                    self.smugmug_api_base_url + "/folder/user/"+self.username+("/"+folder_id if folder_id != None else "")+"!albumfromalbumtemplate", 
-#                                    data=json.dumps(data), headers={'Accept': 'application/json', 'Content-Type': 'application/json'})
-#        else:
-#            response = self.request('POST', 
-#                                    self.smugmug_api_base_url + "/folder/user/"+self.username + ("/"+folder_id if folder_id != None else "") + "!albums", 
-#                                    data=json.dumps(data), 
-#                                    headers={'Accept': 'application/json', 'Content-Type': 'application/json'})
-#
-#        if self.verbose == True:
-#            print(json.dumps(response))
-#
-#        return response
 
 
     def get_album_info(self, album_id):
@@ -672,42 +646,38 @@ class SmugPyter(object):
                 
         return (image_count, new_count)
     
+    
+    def update_all_sample_images(self, root, *, yammer=False):
+        """
+        Scan all manifest files in local directories and download sample
+        images listed in manifest files that are not already present.
         
-#    def download_image(self, image_info, image_path, retries=5):
-#        """
-#        Download an image from a url.
-#        """
-#        count = retries
-#        image_url = self.get_image_download_url(image_info["ImageKey"])
-#        image_path_temp = image_path + "_temp"
-#
-#        while count > 0:
-#            count -= 1
-#            # Doing the actual downloading
-#            image_data = self.smugmug_session.request(url=image_url, method='GET', stream=True).raw
-#            image_data.decode_content = True
-#            with open(image_path_temp, 'wb') as f:
-#                shutil.copyfileobj(image_data, f)
-#            
-#            # Checking the image
-#            image_data_local = self.load_image(image_path_temp)
-#            image_md5sum = hashlib.md5(image_data_local).hexdigest()
-#            image_size = str(len(image_data_local))
-#            if image_md5sum != image_info['ArchivedMD5']:
-#                raise Exception("MD5 sum doesn't match.")
-#            elif image_size != str(image_info['OriginalSize']):
-#                raise Exception("Image size doesn't match.")
-#            else:
-#                os.rename(image_path_temp, image_path)
-#                break
-#
-#            if count > 0:
-#                print("Retrying...")
-#            else:
-#                raise Exception("Error: Too many retries.")
-#                sys.exit(1)
-                
-                
+            smug = SmugPyter()
+            smug.update_all_sample_images('c:\SmugMirror', yammer=True)
+        """
+        return self.scan_do_local_files(root, func_do=self.download_album_sample_images, yammer=yammer)
+    
+    
+    def scan_do_local_files(self, root, *, func_do=None, pattern='manifest-', 
+                            alist_filter=['txt'], yammer=True):
+        """
+        Scan files matching pattern in local directories and apply function (func_do).
+        """
+        total_images, total_changes = 0 , 0
+        for r,d,f in os.walk(root):
+            for file in f:
+                image_count , change_count = 0 , 0
+                if file[-3:] in alist_filter and pattern in file:				    
+                    file_name = os.path.join(root,r,file)
+                    if func_do is not None:
+                        if yammer:
+                            print(file_name)
+                        image_count , change_count = func_do(file_name)
+                total_images += image_count
+                total_changes += change_count
+        return (total_images, total_changes)
+    
+        
     def case_mask_encode(self, smug_key):
         """
         Encode the case mask as an integer.
