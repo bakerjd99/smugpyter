@@ -49,6 +49,7 @@ class SmugPyter(object):
     
     auth = None
     yammer = False
+    merge_changes = False
     
     # cannot create SmugPyter objects if this file is missing
     smugmug_config = os.path.join(os.path.expanduser("~"), '.smugpyter.cfg')
@@ -647,7 +648,7 @@ class SmugPyter(object):
         return (image_count, new_count)
     
     
-    def update_all_sample_images(self, root, *, yammer=False):
+    def update_all_sample_images(self, root):
         """
         Scan all manifest files in local directories and download sample
         images listed in manifest files that are not already present.
@@ -655,11 +656,11 @@ class SmugPyter(object):
             smug = SmugPyter()
             smug.update_all_sample_images('c:\SmugMirror', yammer=True)
         """
-        return self.scan_do_local_files(root, func_do=self.download_album_sample_images, yammer=yammer)
+        return self.scan_do_local_files(root, func_do=self.download_album_sample_images)
     
     
     def scan_do_local_files(self, root, *, func_do=None, pattern='manifest-', 
-                            alist_filter=['txt'], yammer=True):
+                            alist_filter=['txt']):
         """
         Scan files matching pattern in local directories and apply function (func_do).
         """
@@ -670,7 +671,7 @@ class SmugPyter(object):
                 if file[-3:] in alist_filter and pattern in file:				    
                     file_name = os.path.join(root,r,file)
                     if func_do is not None:
-                        if yammer:
+                        if self.yammer:
                             print(file_name)
                         image_count , change_count = func_do(file_name)
                 total_images += image_count
