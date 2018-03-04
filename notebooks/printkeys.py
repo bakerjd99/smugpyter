@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import re
 import csv
-import os
 import smugpyter
 
 class PrintKeys(smugpyter.SmugPyter):
@@ -232,44 +231,17 @@ class PrintKeys(smugpyter.SmugPyter):
         return self.scan_do_local_files(root, func_do=self.write_size_keyword_changes)
         
         
-    def update_all_keyword_changes_files_old(self, root, *, merge_changes=False):
-        """
-        Scan all manifest files in local directories and
-        generate TAB delimited CSV keyword changes files.
-        """
-        total_images , total_changes = 0 , 0
-        pattern = "manifest-"
-        alist_filter = ['txt'] 
-        for r,d,f in os.walk(root):
-            for file in f:
-                if file[-3:] in alist_filter and pattern in file:
-                    file_name = os.path.join(root,r,file)
-                    image_count, change_count = self.write_size_keyword_changes(file_name, merge_changes=merge_changes)
-                    if change_count > 0:
-                        print(file_name)
-                    total_images += image_count
-                    total_changes += change_count
-        print('image count %s, change count %s' % (total_images, total_changes))
-        
-
     def update_all_keyword_changes(self, root):
         """
         Scan all changes files in local directories
         and apply keyword changes.
-        """
-        total_changes = 0
-        pattern = "changes-"
-        alist_filter = ['txt'] 
-        for r,d,f in os.walk(root):
-            for file in f:
-                if file[-3:] in alist_filter and pattern in file:
-                    file_name = os.path.join(root,r,file)
-                    change_count = self.change_keywords(file_name)
-                    if change_count > 0:
-                        print(file_name)
-                    total_changes += change_count
-        print('change count %s' % total_changes)
         
+            pk = PrintKeys()
+            pk.update_all_keyword_changes_files('c:\SmugMirror')
+        """
+        return self.scan_do_local_files(root, pattern='changes-', 
+                                        func_do=self.change_keywords)
+
 
 # if __name__ == '__main__':
     # pk = PrintKeys()

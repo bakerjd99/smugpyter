@@ -24,7 +24,7 @@ from string import ascii_letters, digits
 import requests
 import http.client
 #import httplib2
-import hashlib
+#import hashlib
 #import urllib.request, urllib.parse, urllib.error
 import time
 import sys
@@ -343,8 +343,7 @@ class SmugPyter(object):
                     continue
             else:
                 # this is ugly but I don't see any other way to get the original image EXIF dates
-                if self.yammer:
-                    print('getting real date -> ' + imfile)
+                self.show_yammer('getting real date -> ' + imfile)
                 response = self.request('GET', self.smugmug_api_base_url + "/image/" + key + "!metadata", 
                                         params=params, headers=headers)
                 image_date = self.get_image_date(response['Response']['ImageMetadata'])
@@ -366,7 +365,6 @@ class SmugPyter(object):
     def create_nice_name(self, name):
         return "-".join([re.sub(r'[\W_]+', '', x) for x in name.strip().split()]).title()
    
-
 
     def get_album_info(self, album_id):
         """
@@ -592,7 +590,7 @@ class SmugPyter(object):
             count -= 1
             
             # Doing the actual downloading
-            print('downloading -> ' + new_name)
+            self.show_yammer('downloading -> ' + new_name)
             image_data = self.smugmug_session.request(url=image_url, method='GET', stream=True).raw
             image_data.decode_content = True
             with open(image_path_temp, 'wb') as f:
@@ -662,7 +660,8 @@ class SmugPyter(object):
     def scan_do_local_files(self, root, *, func_do=None, pattern='manifest-', 
                             alist_filter=['txt']):
         """
-        Scan files matching pattern in local directories and apply function (func_do).
+        Scan files matching pattern and extension in local 
+        directories and apply function (func_do).
         """
         total_images, total_changes = 0 , 0
         for r,d,f in os.walk(root):
@@ -671,8 +670,7 @@ class SmugPyter(object):
                 if file[-3:] in alist_filter and pattern in file:				    
                     file_name = os.path.join(root,r,file)
                     if func_do is not None:
-                        if self.yammer:
-                            print(file_name)
+                        self.show_yammer(file_name)
                         image_count , change_count = func_do(file_name)
                 total_images += image_count
                 total_changes += change_count
@@ -736,6 +734,7 @@ class SmugPyter(object):
         Issue API PATCH request to change SmugMug keywords.
         NIMP: does not follow conventions of other requests 
         """
+        self.show_yammer(keywords)
         r = requests.patch(url=self.smugmug_api_base_url + '/image/' + image_id,
                            auth=self.auth,
                            data=json.dumps({"Keywords": keywords}),
@@ -755,14 +754,16 @@ class SmugPyter(object):
         change_count = 0
         with open(changes_file, 'r') as f:
             reader = csv.DictReader(f, dialect='excel', delimiter='\t')
-            # NIMP: check that required columns are present                   
             for row in reader:
+                nokey = row["ImageKey"] is None or row["ImageKey"] == ""
+                nowords = row["Keywords"] is None or row["Keywords"] == ""
+                if nokey or nowords:
+                    raise ValueError("(ImageKey, Keywords) missing in -> " + changes_file)
                 change_count += 1
                 image_key = row['ImageKey']
                 keywords = row['Keywords']
-                #print(key, keywords)
                 self.change_image_keywords(image_key, keywords)
-        return change_count
+        return (0, change_count)
     
     
     def image_dict_from_csv(self, image_file):
@@ -782,6 +783,12 @@ class SmugPyter(object):
                 image_key = row['ImageKey']
                 image_dict[image_key] = row
         return image_dict
+    
+    
+    def show_yammer(self, message):
+        """ conditional yammer message """
+        if self.yammer:
+            print(message)
         
 
     @staticmethod

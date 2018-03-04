@@ -1,5 +1,4 @@
-# Refresh album CSV real date files:
-# assumes (smugpyter) location is on sys.path
+# Refresh album CSV real date files: assumes (smugpyter) location is on sys.path.
 
 # WARNING: it takes a long time to run this script for the
 # first time. The dates we are looking for are buried in the

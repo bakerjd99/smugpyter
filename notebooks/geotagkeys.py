@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import csv
-import os
 import requests
 import smugpyter
 
@@ -8,17 +7,20 @@ class GeotagKeys(smugpyter.SmugPyter):
     
     def __init__(self, verbose=False): 
         """ class constructor """
-        super().__init__(verbose)
+        super().__init__()
 
 
     def geotag_images(self, manifest_file, *, split_delimiter=';', geotag_key='geotagged'):
         """
         Sets a geotagged keyword for nongeotagged images with nonzero latitude or longitude.
         """
-        change_count = 0
+        image_count, change_count = 0 , 0
         with open(manifest_file, 'r') as f:
             reader = csv.DictReader(f, dialect='excel', delimiter='\t')                     
             for row in reader:
+                if self.bad_geotag_keys(row):
+                    raise ValueError("(ImageKey, Latitude, Longitude, Keywords) missing in -> " + manifest_file)
+                image_count += 1
                 key = row['ImageKey']
                 latitude = float(row['Latitude'])
                 longitude = float(row['Longitude'])
@@ -38,10 +40,8 @@ class GeotagKeys(smugpyter.SmugPyter):
                     same, new_keywords = (set(outkeys) == set(inkeys), (split_delimiter+' ').join(outkeys))
                     if not same:
                         change_count += 1   
-                        #print(manifest_file)
-                        #print(key, new_keywords)
                         self.change_image_keywords(key, new_keywords)
-        return change_count
+        return (image_count, change_count)
     
     
     def set_all_geotags(self, root):
@@ -49,20 +49,12 @@ class GeotagKeys(smugpyter.SmugPyter):
         Scan all manifest files in local directories and set
         geotags for images with nonzero latitude or longitude
         that are not geotagged.
-        """
-        total_changes = 0
-        pattern = "manifest-"
-        alist_filter = ['txt'] 
-        for r,d,f in os.walk(root):
-            for file in f:
-                if file[-3:] in alist_filter and pattern in file:
-                    file_name = os.path.join(root,r,file)
-                    change_count = self.geotag_images(file_name)
-                    if change_count > 0:
-                        print(file_name)
-                    total_changes += change_count
-        print('change count %s' % total_changes)
         
+            gk = GeotagKeys()
+            gk.set_all_geotags('c:\SmugMirror')
+        """
+        return self.scan_do_local_files(root, func_do=self.geotag_images)
+    
         
     def reverse_geocode(self, latitude, longitude):
         """
@@ -92,10 +84,13 @@ class GeotagKeys(smugpyter.SmugPyter):
         """
         Reverse geocode images with nonzero latitude and longitude.
         """
-        change_count = 0
+        image_count, change_count = 0 , 0
         with open(manifest_file, 'r') as f:
             reader = csv.DictReader(f, dialect='excel', delimiter='\t')                     
             for row in reader:
+                if self.bad_geotag_keys(row):
+                    raise ValueError("(ImageKey, Latitude, Longitude, Keywords) missing in -> " + manifest_file)
+                image_count += 1
                 key = row['ImageKey']
                 latitude = float(row['Latitude'])
                 longitude = float(row['Longitude'])
@@ -119,10 +114,9 @@ class GeotagKeys(smugpyter.SmugPyter):
                         outkeys = self.standard_keywords(new_keywords, split_delimiter=split_delimiter) 
                         same, new_keywords = (set(outkeys) == set(inkeys), (split_delimiter+' ').join(outkeys))
                         if not same:
-                            print(reverse_keywords)
                             change_count += 1   
                             self.change_image_keywords(key, new_keywords)
-        return change_count
+        return (image_count, change_count)
     
     
     def set_all_reverse_geocodes(self, root):
@@ -131,20 +125,20 @@ class GeotagKeys(smugpyter.SmugPyter):
         reverse geocode keys for nongeotagged images with nonzero
         latitude or longitude.
         
-        Note: limited to 2,500 free Google geocode API calls per day.
+            gk = GeotagKeys()
+            gk.set_all_reverse_geocodes('c:\SmugMirror')
         """
-        total_changes = 0
-        pattern = "manifest-"
-        alist_filter = ['txt'] 
-        for r,d,f in os.walk(root):
-            for file in f:
-                if file[-3:] in alist_filter and pattern in file:
-                    file_name = os.path.join(root,r,file)
-                    change_count = self.reverse_geocode_images(file_name)
-                    if change_count > 0:
-                        print(file_name)
-                    total_changes += change_count
-        print('change count %s' % total_changes)
+        return self.scan_do_local_files(root, func_do=self.reverse_geocode_images)
+    
+    
+    @staticmethod
+    def bad_geotag_keys(row):
+         bad = row["ImageKey"] is None or row["ImageKey"] == ""
+         bad = bad or row["Latitude"] is None or row["Latitude"] == ""
+         bad = bad or row["Longitude"] is None or row["Longitude"] == ""
+         bad = bad or row["Keywords"] is None or row["Keywords"] == ""
+         return bad
+     
         
 #if __name__ == '__main__':
 #    gk = GeotagKeys()

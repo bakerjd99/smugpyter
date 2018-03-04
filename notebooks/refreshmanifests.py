@@ -1,5 +1,4 @@
-# refresh album CSV manifest files
-# assumes (smugpyter) location is on sys.path
+# Refresh album CSV manifest files: assumes (smugpyter) location is on sys.path.
 import smugpyter
 
 smugmug = smugpyter.SmugPyter()
