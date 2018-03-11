@@ -12,5 +12,7 @@ The notebooks are best used in this order.
 
 3. [Setting SmugMug Print Size Keywords with Jupyter and Python](https://github.com/bakerjd99/smugpyter/blob/master/notebooks/Setting%20SmugMug%20Print%20Size%20Keywords%20with%20Jupyter%20and%20Python.ipynb)
 
+4. [Finding Dominant Color Names from Color Space Coordinates and Images](https://github.com/bakerjd99/smugpyter/blob/master/notebooks/Finding%20Dominant%20Color%20Names%20from%20Color%20Space%20Coordinates%20and%20Images.ipynb)
+
 John Baker
-January 20, 2018
+March 10, 2018
