@@ -4,6 +4,14 @@
 Remarks about outstanding tasks and other `SmugPyter` issues.
 Base 36 GUIDS cross reference *the history* of `TODO.md`.
 
+### March 16, 2017
+
+ * `<_573ot7sb11hcqdizl282wcnke_>` I've added a 
+   [notebook](https://github.com/bakerjd99/smugpyter/blob/master/notebooks/Finding%20Dominant%20Color%20Names%20from%20Color%20Space%20Coordinates%20and%20Images.ipynb) 
+   about using *kmeans* to compute "nearest" named colors.  I abandoned a 
+   brightness suffix when I realized that named web colors 
+   span a sufficient range of light and dark tones.
+
 ### March 10, 2017
 
  * `<_e7uijzo51rni98iqyknhnu9av_>` I have made enough progress testing

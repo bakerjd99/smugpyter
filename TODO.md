@@ -20,8 +20,6 @@ versions of this file and extract all GUID marked tasks.
 
 7. `<_e6x7m9kqbms7cpsh73j09qrxz_>` Refine OAuth material in first Jupyter noteboook.
 
-8. `<_573ot7sb11hcqdizl282wcnke_>` Add a new notebook about dominant color and brightness keys.
-
 9. `<_0sxnv5m9dslqxewh5mvbv9swk_>` Add a notebook illustrating the use of the final working Python scripts.
 
 11. `<_3g6dzam8v2whg7oflf1d8f5ik_>` Fix typos in notebooks.
