@@ -20,6 +20,7 @@ class PrintKeys(smugpyter.SmugPyter):
     aspect_ratios = None
     print_areas = None
     size_keywords = None
+    
 
     def __init__(self, verbose=False):
         """ class constructor """
@@ -202,47 +203,26 @@ class PrintKeys(smugpyter.SmugPyter):
     
     def write_size_keyword_changes(self, manifest_file):
         """
-        Write TAB delimited file of changed metadata.
+        Write TAB delimited file of changed print size keywords.
         Return album and keyword (image_count, change_count) tuple.
         
             manifest_file = 'c:\SmugMirror\Places\Overseas\Ghana1970s\manifest-Ghana1970s-Kng6tg-w.txt'
             write_size_keyword_changes(manifest_file)  
         """
-        image_count, change_count, keyword_changes = self.print_keywords(manifest_file)
-        changes_file = self.changes_filename(manifest_file)
-        keys = keyword_changes[0].keys()
-        with open(changes_file, 'w', newline='') as output_file:
-            dict_writer = csv.DictWriter(output_file, keys, dialect='excel-tab')
-            dict_writer.writeheader()
-            # for no changes write header only
-            if change_count > 0:
-                dict_writer.writerows(keyword_changes)    
-        return(image_count, change_count)
+        return self.write_keyword_changes(manifest_file, func_keywords=self.print_keywords)
         
     
-    def update_all_keyword_changes_files(self, root):
+    def update_all_size_keyword_changes(self, root):
         """
         Scan all manifest files in local directories and
-        generate TAB delimited CSV keyword changes files.
+        generate TAB delimited CSV print size keyword changes files.
         
             pk = PrintKeys()
-            pk.update_all_keyword_changes_files('c:\SmugMirror')
+            pk.update_all_size_keyword_changes('c:\SmugMirror')
         """
         return self.scan_do_local_files(root, func_do=self.write_size_keyword_changes)
         
         
-    def update_all_keyword_changes(self, root):
-        """
-        Scan all changes files in local directories
-        and apply keyword changes.
-        
-            pk = PrintKeys()
-            pk.update_all_keyword_changes_files('c:\SmugMirror')
-        """
-        return self.scan_do_local_files(root, pattern='changes-', 
-                                        func_do=self.change_keywords)
-
-
 # if __name__ == '__main__':
     # pk = PrintKeys()
     # pk.update_all_keyword_changes_files('c:\SmugMirror', merge_changes=True)

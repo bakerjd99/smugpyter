@@ -616,22 +616,13 @@ class SmugPyter(object):
             smug.download_album_sample_images(manifest)
         """
         image_count , new_count = 0 , 0
-        # drop file name
-        image_path = manifest_file.split('\\')
-        image_path[-1] = ''
-        image_path = '\\'.join(image_path) + '\\'
-        #print(image_path)
+        image_path = self.image_path_from_file(manifest_file)
         with open(manifest_file, 'r') as f:
             reader = csv.DictReader(f, dialect='excel', delimiter='\t')                     
             for row in reader:
                 image_count += 1
-                key = row['ImageKey'].strip()
-                key = key + '-' + self.case_mask_encode(key)
-                file_name = row['FileName'].strip()
-                new_name = key + ' ' + file_name
-                # replace blanks with hyphens - simplifies LaTeX inclusions
-                new_name = new_name.replace(' ', '-')
-                
+                new_name = self.image_file_name(row['ImageKey'], row['FileName'])
+               
                 # if an image already exists skip downloading
                 # force reprocessing by deleting images
                 if os.path.isfile(image_path + new_name):
@@ -789,6 +780,89 @@ class SmugPyter(object):
         """ conditional yammer message """
         if self.yammer:
             print(message)
+            
+    
+    def image_file_name(self, image_key, file_name):
+        """ Image file name from CSV (FileName) """
+        key = image_key.strip()
+        key = key + '-' + self.case_mask_encode(key)
+        name = file_name.strip()
+        new_name = key + ' ' + name
+        # replace blanks with hyphens - simplifies LaTeX inclusions
+        new_name = new_name.replace(' ', '-')
+        return new_name
+    
+    
+    def update_keyword(self, new_keyword, keywords, *, 
+                       key_pattern=r"\d+(\.\d+)?[xz]\d+(\.\d+)?", split_delimiter=';'):
+        """
+        Add a (new_keyword) that matches (key_pattern) to existing keywords 
+        and standardize the format of any remaining keywords. Existing keywords
+        that match (key_pattern) are removed insuring (new_word) is the
+        only keyword matching (key_pattern). Result (boolean, string) tuple.
+        """
+        # basic argument check
+        error_message = '(new_keyword), (keywords) must be nonempty strings'
+        if not (isinstance(new_keyword, str) and isinstance(keywords, str)):
+            raise TypeError(error_message)
+        elif len(new_keyword.strip(' ')) == 0:
+            raise ValueError(error_message)
+        
+        if len(keywords.strip(' ')) == 0:
+            return (False, new_keyword)
+        
+        keywords = split_delimiter + keywords
+        inkeys = [s.strip().lower() for s in keywords.split(split_delimiter) if len(s) > 0]
+        inkeys = sorted(list(set(inkeys)))
+        if 0 == len(inkeys):
+            return (False, new_keyword)
+        
+        outkeys = [new_keyword]
+        for inword in inkeys:
+            # remove extant matching keys
+            if re.match(key_pattern, inword) is not None:
+                continue
+            else:
+                outkeys.append(inword)
+                
+        # return standard unique sorted keys
+        outkeys = sorted(list(set(outkeys)))
+        outkeys = self.standard_keywords(split_delimiter.join(outkeys))
+        return (set(outkeys) == set(inkeys), (split_delimiter+' ').join(outkeys))
+    
+    
+    def write_keyword_changes(self, manifest_file, func_keywords):
+        """
+        Write TAB delimited file of changed keywords.
+        Return album and keyword (image_count, change_count) tuple.
+        
+            smug = SmugPyter()
+            ck = ColorKeys() 
+            manifest_file = 'c:\SmugMirror\Places\Overseas\Ghana1970s\manifest-Ghana1970s-Kng6tg-w.txt'
+            smug.write_keyword_changes(manifest_file, ck.color_keywords)  
+        """
+        image_count, change_count, keyword_changes = func_keywords(manifest_file)
+        changes_file = self.changes_filename(manifest_file)
+        keys = keyword_changes[0].keys()
+        with open(changes_file, 'w', newline='') as output_file:
+            dict_writer = csv.DictWriter(output_file, keys, dialect='excel-tab')
+            dict_writer.writeheader()
+            # for no changes write header only
+            if change_count > 0:
+                dict_writer.writerows(keyword_changes)    
+        return(image_count, change_count)
+        
+        
+    def update_all_keyword_changes(self, root):
+        """
+        Scan all changes files in local directories
+        and apply keyword changes.
+        
+            smug = SmugPyter()
+            smug.update_all_keyword_changes_files('c:\SmugMirror')
+        """
+        return self.scan_do_local_files(root, pattern='changes-', 
+                                        func_do=self.change_keywords)
         
 
     @staticmethod
@@ -889,11 +963,11 @@ class SmugPyter(object):
     
     
     @staticmethod
-    def dualsort(a, b):
+    def dualsort(a, b, *, reverse=False):
         """
         Sort lists (a) and (b) using (a) to grade (b).
         """
-        temp = sorted(zip(a, b), key=lambda x: x[0])
+        temp = sorted(zip(a, b), key=lambda x: x[0], reverse=reverse)
         return list(map(list, zip(*temp)))
     
     
@@ -901,3 +975,11 @@ class SmugPyter(object):
     def round_to(n, precision):
         correction = 0.5 if n >= 0 else -0.5
         return int( n/precision+correction ) * precision
+    
+    
+    @staticmethod
+    def image_path_from_file(manifest_file):
+        image_path = manifest_file.split('\\')
+        image_path[-1] = ''
+        image_path = '\\'.join(image_path) + '\\'
+        return image_path
