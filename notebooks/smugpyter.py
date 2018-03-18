@@ -859,7 +859,7 @@ class SmugPyter(object):
         and apply keyword changes.
         
             smug = SmugPyter()
-            smug.update_all_keyword_changes_files('c:\SmugMirror')
+            smug.update_all_keyword_changes('c:\SmugMirror')
         """
         return self.scan_do_local_files(root, pattern='changes-', 
                                         func_do=self.change_keywords)

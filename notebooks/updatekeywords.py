@@ -12,7 +12,7 @@ root = 'c:\SmugMirror'
 gk.set_all_reverse_geocodes(root)
 pk.yammer = True
 pk.merge_changes = True
-pk.update_all_keyword_changes_files(root)
+pk.update_all_size_keyword_changes(root)
 
 # change online keywords
-# pk.update_all_keyword_changes(root)
+pk.update_all_keyword_changes(root)

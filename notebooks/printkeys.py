@@ -225,6 +225,4 @@ class PrintKeys(smugpyter.SmugPyter):
         
 # if __name__ == '__main__':
     # pk = PrintKeys()
-    # pk.update_all_keyword_changes_files('c:\SmugMirror', merge_changes=True)
-    
-    
+       

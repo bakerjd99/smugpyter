@@ -3,6 +3,7 @@ import os
 import csv
 import webcolors
 import numpy as np
+import random
 from PIL import Image
 from math import sqrt
 from sklearn.cluster import KMeans
@@ -14,6 +15,14 @@ class ColorKeys(smugpyter.SmugPyter):
     reset_color_key = False
     resize_factor = 0.4
     num_clusters = 8
+    
+    # overly dominant colors - these colors will
+    # assigned to frequently by the default selection
+    over_dominant = ['darkslategrey', 'black', 'dimgrey', 'darkgrey',
+                     'grey', 'darkolivegreen', 'silver']
+    
+    # number between (0,1) - 0.10 means select roughly 10% of the time
+    over_threshold = 0.10  
     
     
     def __init__(self):
@@ -89,6 +98,14 @@ class ColorKeys(smugpyter.SmugPyter):
                 if distance <= threshold:
                     key = name
                     break
+         
+        roll = random.random()   
+        if (key in self.over_dominant) and (self.over_threshold < roll):
+            # these keys appear to frequently
+            # select another color a certain % of time
+            ix = names.index(key)
+            if (1 + ix) < len(names):
+                key = names[ix + 1]
                 
         return self.dominant_prefix + key.lower().strip()
     
@@ -131,7 +148,7 @@ class ColorKeys(smugpyter.SmugPyter):
                 
                 # check existence of alleged image file
                 new_name = self.image_file_name(key, row['FileName'])
-                print(new_name)
+                #print(new_name)
                 image_file_name = image_path + new_name
                 if not os.path.isfile(image_file_name):
                     print("image file missing -> " + image_file_name)
