@@ -4,6 +4,19 @@
 Remarks about outstanding tasks and other `SmugPyter` issues.
 Base 36 GUIDS cross reference *the history* of `TODO.md`.
 
+### March 19, 2018
+
+ * Over the weekend I applied *kmeans* to all the images
+   I have on [SmugMug](https://conceptcontrol.smugmug.com).  
+   The results are mixed. Many of the generated
+   color keys are perfectably reasonable and many are questionable.
+   The dominant color many not be a "photographically significant color."  
+   Assigning color keys that better align with photographer expectations
+   will require deeper image analysis. I may try some common image segmentation
+   techniques and also see if guiding *kmeans* with common photo composition
+   rules like the *rule of thirds* will help. However, this will have to wait for other
+   projects. I'll live with the keys for now.
+
 ### March 16, 2017
 
  * `<_573ot7sb11hcqdizl282wcnke_>` I've added a 
