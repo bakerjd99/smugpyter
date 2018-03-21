@@ -16,7 +16,7 @@ class ColorKeys(smugpyter.SmugPyter):
     resize_factor = 0.4
     num_clusters = 8
     
-    # overly dominant colors - these colors will
+    # overly dominant colors - these colors will be
     # assigned to frequently by the default selection
     over_dominant = ['darkslategrey', 'black', 'dimgrey', 'darkgrey',
                      'grey', 'darkolivegreen', 'silver']
@@ -78,7 +78,8 @@ class ColorKeys(smugpyter.SmugPyter):
         """
         names , frequencies , distances = names_freqs_dists
         
-        # NIMP: need lists of at least 2 items
+        if  len(names) <= 1:
+             raise ValueError('need at least two named colors') 
         
         if len(names) > len(list(set(names))):
             # most frequent repeated named color
@@ -136,16 +137,16 @@ class ColorKeys(smugpyter.SmugPyter):
                 key = row['ImageKey']
                 inwords = row['Keywords']
                 
-                # merge in current changes file keywords
-                if merge_keys:
-                    if key in changes_dict:
-                        inwords = inwords + split_delimiter + changes_dict[key]['Keywords']
-                        
                 # do not reset extant color keys unless (reset_color_key) is true
                 if self.dominant_prefix in inwords:
                     if not self.reset_color_key:
                         continue
                 
+                # merge in current changes file keywords
+                if merge_keys:
+                    if key in changes_dict:
+                        inwords = inwords + split_delimiter + changes_dict[key]['Keywords']
+                        
                 # check existence of alleged image file
                 new_name = self.image_file_name(key, row['FileName'])
                 #print(new_name)
@@ -167,10 +168,10 @@ class ColorKeys(smugpyter.SmugPyter):
                 
     
                 color_key = self.dominant_color_key(names_freqs_dists)
-                same, keywords = self.update_keyword(color_key, 
-                                                     inwords,
-                                                     key_pattern=r"\d+?[_]",
-                                                     split_delimiter=split_delimiter)
+                same, keywords = self.update_keywords(color_key, 
+                                                      inwords,
+                                                      key_pattern=r"\d+?[_]",
+                                                      split_delimiter=split_delimiter)
                 if not same:
                     change_count += 1
                     changed_keywords.append({'ImageKey': key, 'AlbumKey': row['AlbumKey'],
@@ -227,12 +228,12 @@ class ColorKeys(smugpyter.SmugPyter):
     
     
     @staticmethod
-    def resize_image(image, *, factor=0.4):
+    def resize_image(image, *, factor=0.4, small_side=100):
         """Resize PIL image maintaining aspect ratio."""
         imcopy = image.copy()
         
         # do not resize very small images
-        if max(imcopy.size) < 100:
+        if max(imcopy.size) < small_side:
             return imcopy
         
         #print(imcopy.size)
@@ -247,22 +248,16 @@ class ColorKeys(smugpyter.SmugPyter):
 #    
 #    image1 = Image.open('C:/SmugMirror/Themes/Manipulations/ImageHacking/5NB7dXP-1f-green-gray-dragon-eggs.jpg')
 #    image2 = Image.open('C:/SmugMirror/Themes/Manipulations/ImageHacking/hjbftwN-1-your-grainy-hell-awaits-[409595101].jpg')
-#    image3 = Image.open('C:/SmugMirror/People/GreatandGreaterForebearers/LX8HmDV-2z-william-evert-baker-portrait-1950.jpg')
-#    image4 = Image.open('C:/SmugMirror/Themes/Manipulations/Panoramas/b36sc3H-1-norris-porcelain-basin-yellowstone-panorma.jpg')
 #    
 #    names_freqs_dists1 = ck.cluster_name_freq_dist(image1)
 #    names_freqs_dists2 = ck.cluster_name_freq_dist(image2)
-#    names_freqs_dists3 = ck.cluster_name_freq_dist(image3)
-#    names_freqs_dists4 = ck.cluster_name_freq_dist(image4)
-#    
+#
 #    print(ck.dominant_color_key(names_freqs_dists1))
 #    print(ck.dominant_color_key(names_freqs_dists2))
-#    print(ck.dominant_color_key(names_freqs_dists3))
-#    print(ck.dominant_color_key(names_freqs_dists4))
-#    
-#    manifest_file = 'c:\SmugMirror\Places\Overseas\Ghana1970s\manifest-Ghana1970s-Kng6tg-w.txt'
+#
+#    ck.yammer = True
+#    manifest_file = 'C:\SmugMirror\Themes\Diaries\CellPhoningItIn\manifest-CellPhoningItIn-PfCsJz-16.txt'
 #    ck.write_keyword_changes(manifest_file, ck.color_keywords)
 #    
-#    ck.yammer = True
 #    ck.update_all_color_keyword_changes('c:\SmugMirror')
 

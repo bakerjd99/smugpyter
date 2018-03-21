@@ -23,9 +23,6 @@ import requests_oauthlib
 from string import ascii_letters, digits
 import requests
 import http.client
-#import httplib2
-#import hashlib
-#import urllib.request, urllib.parse, urllib.error
 import time
 import sys
 import os
@@ -382,8 +379,9 @@ class SmugPyter(object):
 
         album_info = dict()
         album_key = self.get_album_key(album_id)
-        response = self.request('GET', self.smugmug_api_uri, params={'method':'smugmug.albums.getInfo', 
-                                                                     'AlbumID':album_id, 'AlbumKey':album_key})
+        response = self.request('GET', self.smugmug_api_uri, 
+                                params={'method':'smugmug.albums.getInfo', 
+                                        'AlbumID':album_id, 'AlbumKey':album_key})
         album_info['album_id'] = response['Album']['id']
         album_info['album_name'] = response['Album']['Title']
         album_info['category_id'] = response['Album']['Category']['id']
@@ -793,8 +791,9 @@ class SmugPyter(object):
         return new_name
     
     
-    def update_keyword(self, new_keyword, keywords, *, 
-                       key_pattern=r"\d+(\.\d+)?[xz]\d+(\.\d+)?", split_delimiter=';'):
+    def update_keywords(self, new_keyword, keywords, *, 
+                       key_pattern=r"\d+(\.\d+)?[xz]\d+(\.\d+)?", 
+                       split_delimiter=';'):
         """
         Add a (new_keyword) that matches (key_pattern) to existing keywords 
         and standardize the format of any remaining keywords. Existing keywords
@@ -864,19 +863,6 @@ class SmugPyter(object):
         return self.scan_do_local_files(root, pattern='changes-', 
                                         func_do=self.change_keywords)
         
-
-    @staticmethod
-    def load_image(image_path):
-        """
-        Load the image data from a path.
-        """
-        try:
-            image_data = open(image_path, 'rb').read()
-            return image_data
-        except IOError as e:
-            raise "I/O error({0}): {1}".format(e.errno, e.strerror)
-        return None
-   
     
     @staticmethod
     def extract_alphanum(in_string):
@@ -979,6 +965,7 @@ class SmugPyter(object):
     
     @staticmethod
     def image_path_from_file(manifest_file):
+        """ NIMP: does not work for / path chars """
         image_path = manifest_file.split('\\')
         image_path[-1] = ''
         image_path = '\\'.join(image_path) + '\\'

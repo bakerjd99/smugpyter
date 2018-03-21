@@ -121,43 +121,7 @@ class PrintKeys(smugpyter.SmugPyter):
                     
         return print_key
     
-    
-    def update_size_keyword(self, size_keyword, keywords, split_delimiter=';'):
-        """
-        Update the print size keyword for a single image
-        and standardize the format of any remaining keywords.
-        Result is a (boolean, string) tuple.
-        """
-        # basic argument check
-        error_message = '(size_keyword), (keywords) must be nonempty strings'
-        if not (isinstance(size_keyword, str) and isinstance(keywords, str)):
-            raise TypeError(error_message)
-        elif len(size_keyword.strip(' ')) == 0:
-            raise ValueError(error_message)
-        
-        if len(keywords.strip(' ')) == 0:
-            return (False, size_keyword)
-        
-        keywords = split_delimiter + keywords
-        inkeys = [s.strip().lower() for s in keywords.split(split_delimiter) if len(s) > 0]
-        inkeys = sorted(list(set(inkeys)))
-        if 0 == len(inkeys):
-            return (False, size_keyword)
-        
-        outkeys = [size_keyword]
-        for inword in inkeys:
-            # remove any existing print size keys
-            if re.match(r"\d+(\.\d+)?[xz]\d+(\.\d+)?", inword) is not None:
-                continue
-            else:
-                outkeys.append(inword)
-                
-        # return standard unique sorted keys
-        outkeys = sorted(list(set(outkeys)))
-        outkeys = self.standard_keywords(split_delimiter.join(outkeys))
-        return (set(outkeys) == set(inkeys), (split_delimiter+' ').join(outkeys))
-    
-    
+       
     def print_keywords(self, manifest_file, *, split_delimiter=';'):
         """
         Set print size keywords for images in album manifest file.
@@ -186,7 +150,7 @@ class PrintKeys(smugpyter.SmugPyter):
                     
                 height , width = int(row['OriginalHeight']), int(row['OriginalWidth'])
                 size_key = self.print_size_key(height, width)
-                same, keywords = self.update_size_keyword(size_key, inwords)
+                same, keywords = self.update_keywords(size_key, inwords)
                 if not same:
                     change_count += 1
                     changed_keywords.append({'ImageKey': key, 'AlbumKey': row['AlbumKey'],
