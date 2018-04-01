@@ -8,7 +8,7 @@ usage:
  jbase.do('abc=: i.2 3') # define abc
  q= jbase.get('abc')     # get q as numpy array from J array 
  jbase.set('ghi',23+q)   # set J array from numpy array
- jbase.jdor('ghi')       # print array 
+ jbase.dor('ghi')        # print array 
  jbase.j()               # J repl - .... to exit
 
 types:
@@ -18,7 +18,7 @@ types:
  
 Developed with Python 3.6.4 (Anaconda) and J807.
 
-Works with python kernel in Jupyiter.
+Works with python kernel in Jupyter.
 
 """
 
@@ -36,9 +36,9 @@ Works with python kernel in Jupyiter.
 # define full paths to J bin folder, shared library, and profile
 
 # typical for linux/macos install in home (dylib instead of so for macos)
-# pathbin= '/home/eric/j64-806/bin'
-# pathdll= pathbin+'/libj.so'
-# pathpro= pathbin+'/profile.ijs'
+#pathbin= '/home/eric/j64-806/bin'
+#pathdll= pathbin+'/libj.so'
+#pathpro= pathbin+'/profile.ijs'
 
 # typical for debian install
 #pathbin= '/usr/bin'
@@ -52,4 +52,4 @@ pathpro= pathbin+'/profile.ijs'
 
 # perhaps add your enhancements here
 
-#from jcore import * # get base python3->J routines
+from jcore import * # get base python3->J routines
