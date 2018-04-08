@@ -141,6 +141,6 @@ class GeotagKeys(smugpyter.SmugPyter):
      
         
 #if __name__ == '__main__':
-#    gk = GeotagKeys()
-#    gk.set_all_reverse_geocodes('c:\SmugMirror')
+#   gk = GeotagKeys()
+#   gk.set_all_reverse_geocodes('c:\SmugMirror')
     

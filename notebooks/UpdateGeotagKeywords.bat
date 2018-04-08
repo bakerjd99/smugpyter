@@ -1,6 +1,6 @@
 echo off
 
 rem Update local keyword changes files.
-python updatekeywords.py
+python updategeotagkeywords.py
 
 pause 

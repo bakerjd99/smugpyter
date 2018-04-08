@@ -240,8 +240,8 @@ class SmugPyter(object):
         The (argument) parameter selects various API options. For
         example to select all the geotagged images in an album do:
         
-            smugmug = SmugPyter()
-            smugmug.get_album_images('gLd4hT', "geomedia")
+            smug = SmugPyter()
+            smug.get_album_images('gLd4hT', "geomedia")
         """
         if album_id == None:
             raise Exception("Album ID must be set to retrieve images")
@@ -281,9 +281,9 @@ class SmugPyter(object):
         """
         Get a list of {ImageKey, FileName} dictionaries for (album_images).
         
-            smugmug = SmugPyter()
-            album_images = smugmug.get_album_images('XghWcL')
-            smugmug.get_album_image_names(album_images)
+            smug = SmugPyter()
+            album_images = smug.get_album_images('XghWcL')
+            smug.get_album_image_names(album_images)
         """
         image_names = [{"ImageKey": i["ImageKey"], "FileName": i["FileName"]} for i in album_images]
         return image_names
@@ -641,7 +641,7 @@ class SmugPyter(object):
         images listed in manifest files that are not already present.
         
             smug = SmugPyter()
-            smug.update_all_sample_images('c:\SmugMirror', yammer=True)
+            smug.update_all_sample_images('c:\SmugMirror')
         """
         return self.scan_do_local_files(root, func_do=self.download_album_sample_images)
     
@@ -830,6 +830,40 @@ class SmugPyter(object):
         return (set(outkeys) == set(inkeys), (split_delimiter+' ').join(outkeys))
     
     
+    def reset_changes_file(self, manifest_file):
+        """
+        Empties all changes files.
+        Result is a tuple (image_count, change_count).
+        
+            smug = SmugPyter()
+            manifest_file = 'c:\SmugMirror\Places\Overseas\Ghana1970s\manifest-Ghana1970s-Kng6tg-w.txt'
+            smug.reset_changes_file(manifest_file)
+        """
+        changed_keywords = []
+        changed_keywords.append({'ImageKey': None, 'AlbumKey': None, 
+                                         'FileName': None, 'Keywords': None, 
+                                         'OldKeywords': None})
+        image_count , change_count = 0 , 0
+        changes_file = self.changes_filename(manifest_file)
+        keys = changed_keywords[0].keys()
+        with open(changes_file, 'w', newline='') as output_file:
+            dict_writer = csv.DictWriter(output_file, keys, dialect='excel-tab')
+            dict_writer.writeheader()
+            image_count += 1
+            change_count += 1
+        return (image_count, change_count)
+    
+    
+    def reset_all_changes_files(self, root):
+        """
+        Empties all changes files in local directories.
+        
+            smug = SmugPyter()
+            smug.reset_all_changes_files('c:\SmugMirror')
+        """
+        return self.scan_do_local_files(root, func_do=self.reset_changes_file)
+    
+    
     def write_keyword_changes(self, manifest_file, func_keywords):
         """
         Write TAB delimited file of changed keywords.
@@ -965,7 +999,7 @@ class SmugPyter(object):
     
     @staticmethod
     def image_path_from_file(manifest_file):
-        """ NIMP: does not work for / path chars """
+        """ BUG: NIMP: does not work for / path chars """
         image_path = manifest_file.split('\\')
         image_path[-1] = ''
         image_path = '\\'.join(image_path) + '\\'

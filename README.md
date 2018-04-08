@@ -10,9 +10,11 @@ The notebooks are best used in this order.
 
 2. [Downloading SmugMug Captions with Python and Jupyter](https://github.com/bakerjd99/smugpyter/blob/master/notebooks/Downloading%20Smugmug%20Captions%20with%20Jupyter%20and%20Python.ipynb)
 
-3. [Setting SmugMug Print Size Keywords with Jupyter and Python](https://github.com/bakerjd99/smugpyter/blob/master/notebooks/Setting%20SmugMug%20Print%20Size%20Keywords%20with%20Jupyter%20and%20Python.ipynb)
+3. [Setting SmugMug Print Size and Geotag Keywords with Jupyter and Python](https://github.com/bakerjd99/smugpyter/blob/master/notebooks/Setting%20SmugMug%20Print%20Size%20Keywords%20with%20Jupyter%20and%20Python.ipynb)
 
 4. [Finding Dominant Color Names from Color Space Coordinates and Images](https://github.com/bakerjd99/smugpyter/blob/master/notebooks/Finding%20Dominant%20Color%20Names%20from%20Color%20Space%20Coordinates%20and%20Images.ipynb)
 
+5. [Using SmugPyter Batch Scripts]()
+
 John Baker
-March 10, 2018
+April 7, 2018

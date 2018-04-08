@@ -22,8 +22,6 @@ versions of this file and extract all GUID marked tasks.
 
 6. `<_e6x7m9kqbms7cpsh73j09qrxz_>` Refine OAuth material in first Jupyter notebook.
 
-7. `<_0sxnv5m9dslqxewh5mvbv9swk_>` Add a notebook illustrating the use of the final working Python scripts.
-
 8. `<_3g6dzam8v2whg7oflf1d8f5ik_>` Fix typos in notebooks and standardize headers, sub-headers, et cetera.
 
 9. `<_d3x4qhey3pan4abgke6oh7qky_>` Spawn related project to build `LaTeX` from `SmugMirror` metadata.

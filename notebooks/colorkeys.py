@@ -184,15 +184,16 @@ class ColorKeys(smugpyter.SmugPyter):
                                      'Keywords': None, 'OldKeywords': None})
             
         return (image_count, change_count, changed_keywords)
-  
+    
         
     def write_color_keyword_changes(self, manifest_file):
         """
         Write TAB delimited file of changed color keywords.
         Return album and keyword (image_count, change_count) tuple.
         
+            ck = ColorKeys()
             manifest_file = 'c:\SmugMirror\Places\Overseas\Ghana1970s\manifest-Ghana1970s-Kng6tg-w.txt'
-            write_color_keyword_changes(manifest_file)  
+            ck.write_color_keyword_changes(manifest_file)  
         """
         return self.write_keyword_changes(manifest_file, func_keywords=self.color_keywords)
     
