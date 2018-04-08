@@ -2,4 +2,4 @@
 import smugpyter
 
 smug = smugpyter.SmugPyter()
-smug.download_smugmug_mirror(func_album=smugmug.write_album_manifest)
+smug.download_smugmug_mirror(func_album=smug.write_album_manifest)

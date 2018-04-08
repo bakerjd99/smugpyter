@@ -72,6 +72,7 @@ class SmugPyter(object):
             self.access_token_secret = config_parser.get('SMUGMUG','access_token_secret')
             self.local_directory = config_parser.get('SMUGMUG','local_directory')
             self.google_maps_key = config_parser.get('GOOGLEMAPS','google_maps_key')
+            self.log_file = config_parser.get('LOGGING','log_file')
         except:
             raise Exception("Config file is missing or corrupted. Run 'python smugpyter.py'")
 
@@ -84,13 +85,23 @@ class SmugPyter(object):
             authorize_url=self.smugmug_authorize_uri)
         
         # NIMP: we don't need two authorizations - clean up 
-        self.auth = requests_oauthlib.OAuth1(self.consumer_key, self.consumer_secret, self.access_token, 
-                           self.access_token_secret, self.username)
+        self.auth = requests_oauthlib.OAuth1(self.consumer_key, 
+                                             self.consumer_secret, self.access_token, 
+                                             self.access_token_secret, self.username)
             
         self.request_token, self.request_token_secret = self.smugmug_service.get_request_token(method='GET', params={'oauth_callback':'oob'})
-        self.smugmug_session = self.smugmug_service.get_session((self.access_token, self.access_token_secret))
-    
-    
+        self.smugmug_session = self.smugmug_service.get_session((self.access_token, 
+                                                                 self.access_token_secret))
+        self.append_to_log("SmugPyter started: " + time.ctime())
+        
+        
+    def append_to_log(self, text):
+        """ Append text to simple log file - creates if missing"""
+        print(text)
+        with open(self.log_file, "a") as log:
+            log.writelines('\n' + text )
+            
+ 
     def get_authorize_url(self):
         """
         Returns the URL for OAuth authorisation.
@@ -368,7 +379,7 @@ class SmugPyter(object):
         Get info for an album.
             
             smug = SmugPyter()
-            smug.get_album_info('QPZ5K7')
+            smug.get_album_info('WpcrnD')
         """
         if self.verbose == True:
             print("Getting albums")
@@ -438,7 +449,8 @@ class SmugPyter(object):
         Walk SmugMug folders and albums and apply functions (func_album) and (func_folder).
         
             smug = SmugPyter()
-            smug.download_smugmug_mirror(func_album=smug.write_album_manifest) 
+            smug.download_smugmug_mirror(func_album=smug.write_album_manifest)
+            smug.download_smugmug_mirror(func_album=smug.write_album_info)
         """
         root_folder = self.local_directory
         folders = self.get_folders()
@@ -448,6 +460,33 @@ class SmugPyter(object):
             self.mirror_folders_offline(root_uri, root_folder + top_folder, 
                                         func_album, func_folder)
         print("done")
+        
+        
+    def write_album_info(self, album_id, name, path):
+        """
+        Write TAB delimited file of album information.
+        """
+        album_info = self.get_album_info(album_id)
+        selected_info = {'AlbumKey':album_info['AlbumKey'],
+                         'Name':album_info['Name'],
+                         'ImageCount':album_info['ImageCount'],
+                         'LastUpdated':album_info['LastUpdated'],
+                         'ImagesLastUpdated':album_info['ImagesLastUpdated'],
+                         'OriginalSizes':album_info['OriginalSizes'],
+                         'TotalSizes':album_info['TotalSizes'],
+                         'SortMethod':album_info['SortMethod'],
+                         'SortDirection':album_info['SortDirection'],
+                         'Description':self.purify_smugmug_text(album_info['Description'])}
+        rows = []
+        rows.append(selected_info)
+        mask = self.case_mask_encode(album_id)
+        ainfo_name = "ainfo-%s-%s-%s" % (name, album_id, mask)
+        ainfo_file = path + "/" + ainfo_name + '.txt'
+        keys = rows[0].keys()
+        with open(ainfo_file, 'w', newline='') as output_file:
+            dict_writer = csv.DictWriter(output_file, keys, dialect='excel-tab')
+            dict_writer.writeheader()
+            dict_writer.writerows(rows)
  
                     
     def write_album_manifest(self, album_id, name, path):
@@ -977,7 +1016,7 @@ class SmugPyter(object):
             # replace some keywords with others
             for k, s in substitutions:
                 keys = keys.replace(k, s)
-            # return sorted list - move size keys to front     
+            # return sorted list  
             keylist = [s for s in keys.split(split_delimiter)]
             return sorted(keylist)
     
@@ -999,8 +1038,12 @@ class SmugPyter(object):
     
     @staticmethod
     def image_path_from_file(manifest_file):
-        """ BUG: NIMP: does not work for / path chars """
-        image_path = manifest_file.split('\\')
+        """  Extract path from fully qualified manifest file names """
+        if '\\' in manifest_file and '/' in manifest_file:
+            raise ValueError("use either win or unix path delimiters - not both")   
+        delimiter = '\\' if '\\' in manifest_file else '/'
+        image_path = manifest_file.split(delimiter)
         image_path[-1] = ''
-        image_path = '\\'.join(image_path) + '\\'
+        image_path = delimiter.join(image_path)
         return image_path
+    

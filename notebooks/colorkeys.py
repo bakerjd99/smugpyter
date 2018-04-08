@@ -152,7 +152,8 @@ class ColorKeys(smugpyter.SmugPyter):
                 #print(new_name)
                 image_file_name = image_path + new_name
                 if not os.path.isfile(image_file_name):
-                    print("image file missing -> " + image_file_name)
+                    error_message = "image file missing -> " + image_file_name
+                    self.append_to_log(error_message)
                     continue
                 
                 # read sample image file and compute color key
@@ -162,8 +163,9 @@ class ColorKeys(smugpyter.SmugPyter):
                                                                     num_clusters=self.num_clusters,
                                                                     factor=self.resize_factor)
                 except:
-                    # some images cannot be processed
-                    print("cannot compute color key -> " + image_file_name)
+                    # some images cannot be processed - log for inspection
+                    error_message = "cannot compute color key -> " + image_file_name
+                    self.append_to_log(error_message)
                     continue
                 
     

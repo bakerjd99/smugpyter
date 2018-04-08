@@ -9,9 +9,6 @@ versions of this file and extract all GUID marked tasks.
 
 `[begin-todo]`
 
-1. `<_0x26cr3mxdgkvqxwtuwo7clpz_>` Add simple gallery metadata function that captures things like the full
-    gallery name, last update, number of images and any descriptive text.
-
 2. `<_85xwcz8j2awjeqt1y9qp1f8ev_>` Remove unused functions and improve comments in remaining.
 
 3. `<_c8y9ygpu1wjjcgv00x8t0zy9p_>` Replace double authorization with only one - requires reworking many request functions.
@@ -26,8 +23,5 @@ versions of this file and extract all GUID marked tasks.
 
 9. `<_d3x4qhey3pan4abgke6oh7qky_>` Spawn related project to build `LaTeX` from `SmugMirror` metadata.
     The long term goal is a book format index of fully captioned images.
-
-10. `<_7frn0f0ak1oq84a6mxwv9lv2c_>` Add simple logging - a few sample images trigger failures. I suspect these files have 
-    EXIF, bit depth, or other correctable issues.
 
 `[end-todo]`
