@@ -778,6 +778,10 @@ class SmugPyter(object):
     def change_keywords(self, changes_file):
         """
         Change keywords for images in album changes file.
+        
+            smug = SmugPyter()
+            smug.yammer = True
+            smug.change_keywords('C:\SmugMirror\Themes\Diaries\CellPhoningItIn\changes-CellPhoningItIn-PfCsJz-16.txt')
         """
         change_count = 0
         with open(changes_file, 'r') as f:
@@ -1046,4 +1050,7 @@ class SmugPyter(object):
         image_path[-1] = ''
         image_path = delimiter.join(image_path)
         return image_path
+    
+    
+    
     

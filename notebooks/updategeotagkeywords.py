@@ -9,5 +9,5 @@ gk = geotagkeys.GeotagKeys()
 root = 'c:\SmugMirror'
 
 # update changes files
-# gk.yammer = True
+gk.yammer = True
 print(gk.set_all_reverse_geocodes(root))

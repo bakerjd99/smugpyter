@@ -4,6 +4,19 @@
 Remarks about outstanding tasks and other `SmugPyter` issues.
 Base 36 GUIDS cross reference *the history* of `TODO.md`.
 
+### April 29, 2018
+
+* `PATCH` requests are missing in action again. The command to change keywords
+   that worked last week has stopped working. I'm sure there are perfectly
+   logical reasons but I am still annoyed. The return code provides no hint
+   but it's clear from looking at the web site the command is not working.
+   I have seen this many times over the last ten years. What was working
+   stops working - sometimes for good reasons but mostly because eccentric 
+   users like myself are such a tiny portion of SmugMug's business that they
+   can make these changes without stampeding *enough* paying customers.
+   Regardless I will change `SmugPyter` so I can easily set the damn keywords
+   by hand if necessary.
+   
 ### March 19, 2018
 
  * Over the weekend I applied *kmeans* to all the images

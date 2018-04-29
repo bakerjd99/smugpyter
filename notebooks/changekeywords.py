@@ -4,4 +4,5 @@
 import smugpyter
 
 smug = smugpyter.SmugPyter()
+smug.yammer = True
 print(smug.update_all_keyword_changes('c:\SmugMirror'))
