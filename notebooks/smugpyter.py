@@ -1052,5 +1052,9 @@ class SmugPyter(object):
         return image_path
     
     
+# if __name__ == '__main__':
     
+    # smug = SmugPyter()
+    # smug.yammer = True
+    # smug.change_keywords('C:\SmugMirror\Themes\Diaries\CellPhoningItIn\changes-CellPhoningItIn-PfCsJz-16.txt')
     
