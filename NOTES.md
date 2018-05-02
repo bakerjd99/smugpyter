@@ -4,6 +4,22 @@
 Remarks about outstanding tasks and other `SmugPyter` issues.
 Base 36 GUIDS cross reference *the history* of `TODO.md`.
 
+### May 2, 2018
+
+*  A lovely little message from the Google API folks today informed me that
+   they would soon be requiring a credit card for all "keyed" API use. I was
+   reassured that my limited reverse geocoding of at most a dozen locations
+   per month would probably qualify for their under $200 per month plan and remain
+   free. You can imagine my relief.  Even in my use remains free I don't like
+   the idea of handing a credit card number over to Google so I started looking
+   around for free reverse geocoding sites and immediately found an alternative
+   that is not only free for small time uses but easier to use as well.
+   
+   [https://nominatim.openstreetmap.org/reverse?format=json&lat=43.58955&lon=-116.22855&zoom=18&addressdetails=1](https://nominatim.openstreetmap.org/reverse?format=json&lat=43.58955&lon=-116.22855&zoom=18&addressdetails=1)
+   
+   I will adjust `SmugPyter` to use this service.
+   
+
 ### April 29, 2018
 
 * `PATCH` requests are missing in action again. The command to change keywords
