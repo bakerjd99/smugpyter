@@ -40,7 +40,7 @@ class GeotagKeys(smugpyter.SmugPyter):
                     same, new_keywords = (set(outkeys) == set(inkeys), (split_delimiter+' ').join(outkeys))
                     if not same:
                         change_count += 1   
-                        self.change_image_keywords(key, new_keywords)
+                        self.change_image_keywords(key, new_keywords, row)
         return (image_count, change_count)
     
     
@@ -115,7 +115,7 @@ class GeotagKeys(smugpyter.SmugPyter):
                         same, new_keywords = (set(outkeys) == set(inkeys), (split_delimiter+' ').join(outkeys))
                         if not same:
                             change_count += 1   
-                            self.change_image_keywords(key, new_keywords)
+                            self.change_image_keywords(key, new_keywords, row)
         return (image_count, change_count)
     
     

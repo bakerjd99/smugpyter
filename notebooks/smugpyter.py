@@ -45,14 +45,13 @@ class SmugPyter(object):
     reverse_geocode_url = 'https://maps.googleapis.com/maps/api/geocode/json?latlng=' 
     
     auth = None
-    yammer = False
     merge_changes = False
     
     # cannot create SmugPyter objects if this file is missing
     smugmug_config = os.path.join(os.path.expanduser("~"), '.smugpyter.cfg')
 
 
-    def __init__(self, verbose=False, yammer=False):
+    def __init__(self, verbose=False, yammer=True):
         """
         Constructor. 
         Loads the config file and initialises the smugmug service
@@ -61,6 +60,7 @@ class SmugPyter(object):
         self.argument_default = 'images'
         self.local_directory = 'c:/SmugMirror/'
         self.yammer = yammer
+        self.all_keyword_changes = {}
         
         config_parser = configparser.RawConfigParser()
         config_parser.read(SmugPyter.smugmug_config)
@@ -73,6 +73,7 @@ class SmugPyter(object):
             self.local_directory = config_parser.get('SMUGMUG','local_directory')
             self.google_maps_key = config_parser.get('GOOGLEMAPS','google_maps_key')
             self.log_file = config_parser.get('LOGGING','log_file')
+            self.all_keyword_changes_file = config_parser.get('LOGGING','all_changes')
         except:
             raise Exception("Config file is missing or corrupted. Run 'python smugpyter.py'")
 
@@ -698,7 +699,7 @@ class SmugPyter(object):
                 if file[-3:] in alist_filter and pattern in file:				    
                     file_name = os.path.join(root,r,file)
                     if func_do is not None:
-                        self.show_yammer(file_name)
+                        #self.show_yammer(file_name)
                         image_count , change_count = func_do(file_name)
                 total_images += image_count
                 total_changes += change_count
@@ -757,12 +758,24 @@ class SmugPyter(object):
         return changes_file
     
     
-    def change_image_keywords(self, image_id, keywords):
+    def change_image_keywords(self, image_id, keywords, row):
         """
         Issue API PATCH request to change SmugMug keywords.
         NIMP: does not follow conventions of other requests 
         """
-        self.show_yammer(keywords)
+        
+        noimage = row["ImageKey"] is None or row["ImageKey"] == ""
+        nofile = row["FileName"] is None or row["FileName"] == ""
+        if noimage or nofile:
+            raise ValueError("(ImageKey, FileName) missing in row data")
+            
+        self.show_yammer(row['FileName'] + ' -> ' + keywords)
+        
+        # collect all keyword change requests - assuming
+        # image key is unique over all images of a SmugMug account
+        image_key = row['ImageKey']
+        self.all_keyword_changes[image_key] = row
+        
         r = requests.patch(url=self.smugmug_api_base_url + '/image/' + image_id,
                            auth=self.auth,
                            data=json.dumps({"Keywords": keywords}),
@@ -794,7 +807,7 @@ class SmugPyter(object):
                 change_count += 1
                 image_key = row['ImageKey']
                 keywords = row['Keywords']
-                self.change_image_keywords(image_key, keywords)
+                self.change_image_keywords(image_key, keywords, row)
         return (0, change_count)
     
     
@@ -929,6 +942,27 @@ class SmugPyter(object):
         return(image_count, change_count)
         
         
+    def write_all_keyword_changes(self):
+        """
+        Write TAB delimited file of all keyword change requests.
+      
+            smug = SmugPyter()
+            smug.write_all_keyword_changes()  
+        """
+        change_count = len(self.all_keyword_changes)
+        if change_count == 0:
+            self.show_yammer('no keyword change requests')
+            return change_count
+        
+        keys = self.all_keyword_changes[0].keys()
+        with open(self.all_keyword_changes_file, 'w', newline='') as output_file:
+            dict_writer = csv.DictWriter(output_file, keys, dialect='excel-tab')
+            dict_writer.writeheader()
+            if change_count > 0:
+                dict_writer.writerows(self.all_keyword_changes)    
+        return change_count
+            
+        
     def update_all_keyword_changes(self, root):
         """
         Scan all changes files in local directories
@@ -937,8 +971,11 @@ class SmugPyter(object):
             smug = SmugPyter()
             smug.update_all_keyword_changes('c:\SmugMirror')
         """
-        return self.scan_do_local_files(root, pattern='changes-', 
+        self.all_keyword_changes = {}
+        cnts = self.scan_do_local_files(root, pattern='changes-', 
                                         func_do=self.change_keywords)
+        self.write_all_keyword_changes()
+        return cnts
         
     
     @staticmethod
@@ -1004,7 +1041,8 @@ class SmugPyter(object):
         Note: the odd choice of '_' for the blank fill is because hyphens appear
         to be stripped from keywords on SmugMug.
         
-            standard_keywords('go;ahead;test me;boo    hoo  ; you   are   so; 0x0; united   states')
+            smug = SmugPyter()
+            smug.standard_keywords('go;ahead;test me;boo    hoo  ; you   are   so; 0x0; united   states')
         """
         # basic argument check
         error_message = '(keywords) must be a string'
@@ -1052,9 +1090,12 @@ class SmugPyter(object):
         return image_path
     
     
-# if __name__ == '__main__':
-    
-    # smug = SmugPyter()
-    # smug.yammer = True
-    # smug.change_keywords('C:\SmugMirror\Themes\Diaries\CellPhoningItIn\changes-CellPhoningItIn-PfCsJz-16.txt')
+#if __name__ == '__main__':
+#    
+#    smug = SmugPyter()
+#    smug.yammer = True
+#    
+#    # smug.change_keywords('C:\SmugMirror\Themes\Diaries\CellPhoningItIn\changes-CellPhoningItIn-PfCsJz-16.txt')
+#
+#    smug.update_all_keyword_changes('c:\SmugMirror')
     
