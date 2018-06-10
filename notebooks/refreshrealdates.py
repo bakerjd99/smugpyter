@@ -5,9 +5,9 @@
 # original EXIF/IPTC image values and there appears to be no fast
 # way to extract these dates using the SmugMug API 2.0.
 # The "fast" API dates are upload and change dates which
-# are not image EXIF dates. You have to ping the metadata 
+# are not image EXIF dates. You have to ping the metadata
 # of every single image in all albums to extract "real dates."
-# The good news is that these dates are fairly stable and 
+# The good news is that these dates are fairly stable and
 # simple caching of previously fetched dates works well
 # for typical incremental updates.
 

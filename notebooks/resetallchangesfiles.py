@@ -2,4 +2,4 @@
 import smugpyter
 
 smug = smugpyter.SmugPyter()
-print(smug.reset_all_changes_files('c:\SmugMirror'))
+print(smug.reset_all_changes_files(smug.local_directory))

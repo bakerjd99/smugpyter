@@ -1,4 +1,4 @@
-# Update CSV geotagged keywords changes files. Run after 
+# Update CSV geotagged keywords changes files. Run after
 # refreshing manifest files: assumes (smugpyter, geotagkeys) is on sys.path.
 # After running this script apply the changes with (ChangeKeywords.bat)
 # and then rerun (RefreshManifests.bat).
@@ -6,7 +6,7 @@
 import geotagkeys
 
 gk = geotagkeys.GeotagKeys()
-root = 'c:\SmugMirror'
+root = r'c:\SmugMirror\Mirror'
 
 # update changes files
 gk.yammer = True

@@ -4,6 +4,25 @@
 Remarks about outstanding tasks and other `SmugPyter` issues.
 Base 36 GUIDS cross reference *the history* of `TODO.md`.
 
+### June 10, 2018
+
+* I've made numerous changes to `SmugPyter` to support erratic
+  `PATCH` requests. Patch commands are still not working and I
+  haven't pursued the issue with SmugMug. The program now writes
+  an `AllChanges.txt` in the root of the local directories that
+  captures all keyword `PATCH` requests. It's easy to set the
+  keywords manually using this file by simply cutting and pasting.
+  This will do for the small number of images I typically upload
+  for day to day. *It will not do for massive keyword changes!*
+
+  I have also run [autopep8](https://pypi.org/project/autopep8/) over
+  `SmugPyter` code. My experience with code pretty printers is fairly typical.
+  If you start applying a particular pretty printer to new code 
+  you will quickly adjust to its idiosyncracies. If you attempt to
+  mass reformat large amounts of old code you will usually wreak
+  things. `SmugPyter` is new enough to tolerate pretty printing and
+  it does make it easier for others.
+
 ### May 2, 2018
 
 *  A lovely little message from the Google API folks today informed me that

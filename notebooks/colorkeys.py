@@ -50,7 +50,7 @@ class ColorKeys(smugpyter.SmugPyter):
         cluster frequency.
         
             ck = ColorKeys()
-            image = Image.open('C:/SmugMirror/Themes/Manipulations/ImageHacking/hjbftwN-1-your-grainy-hell-awaits-[409595101].jpg')
+            image = Image.open('C:/SmugMirror/Mirror/Themes/Manipulations/ImageHacking/hjbftwN-1-your-grainy-hell-awaits-[409595101].jpg')
             ck.cluster_name_freq_dist(image, num_clusters=8, factor=0.25)
         """
         km = KMeans(n_clusters=num_clusters)
@@ -118,7 +118,7 @@ class ColorKeys(smugpyter.SmugPyter):
         (changed_keyords) is a list of dictionaries in (csv.DictWriter) format.
         
             ck = ColorKeys()
-            manifest_file = 'c:\SmugMirror\Places\Overseas\Ghana1970s\manifest-Ghana1970s-Kng6tg-w.txt'
+            manifest_file = 'c:\SmugMirror\Mirror\Places\Overseas\Ghana1970s\manifest-Ghana1970s-Kng6tg-w.txt'
             ck.color_keywords(manifest_file)
         """
         changes_dict = {}
@@ -177,13 +177,12 @@ class ColorKeys(smugpyter.SmugPyter):
                 if not same:
                     change_count += 1
                     changed_keywords.append({'ImageKey': key, 'AlbumKey': row['AlbumKey'],
-                                           'FileName': row['FileName'], 'Keywords': keywords,
-                                           'OldKeywords': row['Keywords']})
+                                           'FileName': row['FileName'], 'Keywords': keywords})
                     
         # when no images are changed return a header place holder row
         if change_count == 0:
             changed_keywords.append({'ImageKey': None, 'AlbumKey': None, 'FileName': None, 
-                                     'Keywords': None, 'OldKeywords': None})
+                                     'Keywords': None})
             
         return (image_count, change_count, changed_keywords)
     
@@ -194,7 +193,7 @@ class ColorKeys(smugpyter.SmugPyter):
         Return album and keyword (image_count, change_count) tuple.
         
             ck = ColorKeys()
-            manifest_file = 'c:\SmugMirror\Places\Overseas\Ghana1970s\manifest-Ghana1970s-Kng6tg-w.txt'
+            manifest_file = 'c:\SmugMirror\Mirror\Places\Overseas\Ghana1970s\manifest-Ghana1970s-Kng6tg-w.txt'
             ck.write_color_keyword_changes(manifest_file)  
         """
         return self.write_keyword_changes(manifest_file, func_keywords=self.color_keywords)
@@ -206,7 +205,7 @@ class ColorKeys(smugpyter.SmugPyter):
         generate TAB delimited CSV print size keyword changes files.
         
             ck = ColorKeys()
-            ck.update_all_color_keyword_changes('c:\SmugMirror')
+            ck.update_all_color_keyword_changes('c:\SmugMirror\Mirror')
         """
         return self.scan_do_local_files(root, func_do=self.write_color_keyword_changes)
                 

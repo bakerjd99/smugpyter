@@ -1,6 +1,6 @@
 # Update CSV print size keywords changes files.
 # Run after refreshing manifest files and updating
-# sample images: assumes (smugpyter, printkeys, 
+# sample images: assumes (smugpyter, printkeys,
 # colorkeys, geotagkeys) are on sys.path.
 
 import printkeys
@@ -8,7 +8,7 @@ import colorkeys
 
 pk = printkeys.PrintKeys()
 ck = colorkeys.ColorKeys()
-root = 'c:\SmugMirror'
+root = r'c:\SmugMirror\Mirror'
 
 # update changes files - order matters
 #pk.yammer = True

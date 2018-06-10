@@ -4,4 +4,5 @@ import smugpyter
 
 smug = smugpyter.SmugPyter()
 #smug.yammer = True
-print(smug.update_all_sample_images('c:\SmugMirror'))
+#BUG: fix hard path: smug.local_directory
+print(smug.update_all_sample_images(r'c:\SmugMirror\Mirror'))
