@@ -13,7 +13,7 @@ Base 36 GUIDS cross reference *the history* of `TODO.md`.
   captures all keyword `PATCH` requests. It's easy to set the
   keywords manually using this file by simply cutting and pasting.
   This will do for the small number of images I typically upload
-  for day to day. *It will not do for massive keyword changes!*
+  from day to day. *It will not do for massive keyword changes!*
 
   I have also run [autopep8](https://pypi.org/project/autopep8/) over
   `SmugPyter` code. My experience with code pretty printers is fairly typical.
