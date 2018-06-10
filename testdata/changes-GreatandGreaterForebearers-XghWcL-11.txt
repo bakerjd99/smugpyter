@@ -1,1 +1,1 @@
-ImageKey	AlbumKey	FileName	Keywords	OldKeywords
+ImageKey	AlbumKey	FileName	Keywords
