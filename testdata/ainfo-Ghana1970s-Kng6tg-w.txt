@@ -1,0 +1,2 @@
+AlbumKey	Name	ImageCount	LastUpdated	ImagesLastUpdated	OriginalSizes	TotalSizes	SortMethod	SortDirection	Description
+Kng6tg	Ghana 1970's	15	2017-07-16T21:51:42+00:00	2017-07-16T21:51:46+00:00	51724174	105939887	Date Taken	Ascending	

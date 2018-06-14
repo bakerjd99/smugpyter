@@ -1,0 +1,2 @@
+AlbumKey	Name	ImageCount	LastUpdated	ImagesLastUpdated	OriginalSizes	TotalSizes	SortMethod	SortDirection	Description
+XghWcL	Great and Greater Forebearers	13	2018-01-20T20:25:58+00:00	2018-01-20T20:26:02+00:00	36107658	65116947	Date Taken	Ascending	
