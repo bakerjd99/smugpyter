@@ -386,16 +386,16 @@ class SmugPyter(object):
                                 headers={'Accept': 'application/json'})
         return response["Response"]["Album"]
 
-        album_info = dict()
-        album_key = self.get_album_key(album_id)
-        response = self.request('GET', self.smugmug_api_uri,
-                                params={'method': 'smugmug.albums.getInfo',
-                                        'AlbumID': album_id, 'AlbumKey': album_key})
-        album_info['album_id'] = response['Album']['id']
-        album_info['album_name'] = response['Album']['Title']
-        album_info['category_id'] = response['Album']['Category']['id']
-        album_info['category_name'] = response['Album']['Category']['Name']
-        return album_info
+        # album_info = dict()
+        # album_key = self.get_album_key(album_id)
+        # response = self.request('GET', self.smugmug_api_uri,
+        #                         params={'method': 'smugmug.albums.getInfo',
+        #                                 'AlbumID': album_id, 'AlbumKey': album_key})
+        # album_info['album_id'] = response['Album']['id']
+        # album_info['album_name'] = response['Album']['Title']
+        # album_info['category_id'] = response['Album']['Category']['id']
+        # album_info['category_name'] = response['Album']['Category']['Name']
+        # return album_info
 
     def get_child_node_uri(self, node_id):
         """
@@ -629,11 +629,11 @@ class SmugPyter(object):
             os.rename(image_path_temp, image_path + new_name)
             break
 
-            if count > 0:
-                print("Retrying...")
-            else:
-                raise Exception("Error: Too many retries.")
-                # probably no medium or small size - try getting the thumb
+            # if count > 0:
+            #     print("Retrying...")
+            # else:
+            #     raise Exception("Error: Too many retries.")
+            #     # probably no medium or small size - try getting the thumb
 
     def download_album_sample_images(self, manifest_file):
         """
@@ -641,7 +641,7 @@ class SmugPyter(object):
         Result is a tuple (image_count, new_count).
 
             smug = SmugPyter()
-            manifest = 'C:\SmugMirror\Mirror\Places\Overseas\BeirutLebanon1960s\manifest-BeirutLebanon1960s-QPZ5K7-1m.txt'
+            manifest = r'C:\SmugMirror\Mirror\Places\Overseas\BeirutLebanon1960s\manifest-BeirutLebanon1960s-QPZ5K7-1m.txt'
             smug.download_album_sample_images(manifest)
         """
         image_count, new_count = 0, 0
@@ -672,7 +672,7 @@ class SmugPyter(object):
         images listed in manifest files that are not already present.
 
             smug = SmugPyter()
-            smug.update_all_sample_images('c:\SmugMirror\Mirror')
+            smug.update_all_sample_images(r'c:\SmugMirror\Mirror')
         """
         return self.scan_do_local_files(root, func_do=self.download_album_sample_images)
 
@@ -1020,8 +1020,8 @@ class SmugPyter(object):
         Return a list of keywords in standard form.
 
         Reduces multiple blanks to one, converts to lower case, and replaces
-        any remaining blanks with (blank_fill). This insures keywords are contigous
-        lower case or hypenated lower case character runs.
+        any remaining blanks with (blank_fill). This insures keywords are contiguous
+        lower case or hyphenated lower case character runs.
 
         Note: the odd choice of '_' for the blank fill is because hyphens appear
         to be stripped from keywords on SmugMug.

@@ -41,7 +41,7 @@ class PrintKeys(smugpyter.SmugPyter):
     def set_print_sizes(self, smug_print_sizes):
         """
         Sets the lists that represent the print sizes table.
-        Result is a tuble of lists (aspect_ratios, print_areas, size_keywords).
+        Result is a tuple of lists (aspect_ratios, print_areas, size_keywords).
         """
         all_aspect_ratios = []
         all_print_areas = []
