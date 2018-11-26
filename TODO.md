@@ -7,6 +7,9 @@ base 36 GUID key is stable over the lifetime of a task. Eventually
 I will hack together a GIT utility that will troll over the previous
 versions of this file and extract all GUID marked tasks. 
 
+Note: I use a number of VCS systems. The base 36 GUID is my key
+for relating issues, tickets and so forth across systems.
+
 `[begin-todo]`
 
 1. `<_85xwcz8j2awjeqt1y9qp1f8ev_>` Remove unused functions and improve comments in remaining.
@@ -23,5 +26,9 @@ versions of this file and extract all GUID marked tasks.
 
 7. `<_d3x4qhey3pan4abgke6oh7qky_>` Spawn related project to build `LaTeX` from `SmugMirror` metadata.
     The long term goal is a book format index of fully captioned images.
+
+8. `<_5qydomtdfzc73r57iaekb1hr6_>` Verify folder and path tree traversal - two galleries not being visited.
+
+9. `<_1jx2lr9ph683otlyvdrq1h6fj_>` SmugMug `PATCH` commands stopped working again - investigate.
 
 `[end-todo]`
