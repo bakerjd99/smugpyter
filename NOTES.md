@@ -4,6 +4,35 @@
 Remarks about outstanding tasks and other `SmugPyter` issues.
 Base 36 GUIDS cross reference *the history* of `TODO.md`.
 
+### November 28, 2018
+
+* I have been using `SmugPyter` for a few months now - long
+  enough to observe the good and the bad. 
+  
+  Starting with the bad: the other day while tracking down a bug
+  in a related program that consolidates all the metadata collected
+  by `SmugPyter` into an SQLite database. I noticed that `SmugPyter`
+  was not visiting all galleries. The recursive tree walk omitted at
+  least two galleries. This is an embarrassing blunder. I should have
+  detected this months ago. I have mocked up a nonrecursive
+  gallery scan that will be more reliable and easier to debug.
+  Also, `PATCH` requests come and go - mostly they go. 
+
+  As for the good, day to day use of `SmugPyter` is proving less
+  onerous than expected. I update images in small batches.
+  Keeping the keys set for small batches is easy even with 
+  the broken `PATCH`.
+
+  A few small additions would make `SmugPyter` easier to use.
+  I plan on adding some functions to compute all the keys
+  of single images when given an image key or file name.
+  I've noticed a number of key assignment errors while editing keys.
+  Going back to original keys would be handy when such errors are discovered.
+  
+  Also, it may be useful to experiment with only scanning galleries
+  that have been recently updated.  If the `SmugMug` update timestamps are
+  reliable they could be used to avoid scanning galleries that haven't changed. 
+   
 ### June 10, 2018
 
 * I've made numerous changes to `SmugPyter` to support erratic
