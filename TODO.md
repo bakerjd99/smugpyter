@@ -31,4 +31,8 @@ for relating issues, tickets and so forth across systems.
 
 9. `<_1jx2lr9ph683otlyvdrq1h6fj_>` SmugMug `PATCH` commands stopped working again - investigate.
 
+10. `<_1g8i6cxe6xe199imf8o75nsy1_>` Add functions to generate all keys for a single image from its file
+    name and position when given an album key or file name. Would be very useful
+    for making spot corrections and adjustments to assigned keys.
+
 `[end-todo]`
