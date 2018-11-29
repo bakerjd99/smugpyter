@@ -456,7 +456,25 @@ class SmugPyter(object):
             self.mirror_folders_offline(root_uri, root_folder + top_folder,
                                         func_album, func_folder)
         print("done")
-
+        
+    def write_album_metadata(self, album_id, name, path):
+        """
+        Write one album's TAB delimited metadata files.
+        
+        Example call:
+            
+        smug.write_album_metadata('35K9VD',
+           'BanffandJasper2006',
+           'C:/SmugMirror/Mirror/Trips/USAandCanada/BanffandJasper2006'
+        )
+            
+        """
+    
+        # write order matters
+        self.write_album_info(album_id, name, path)
+        self.write_album_manifest(album_id, name, path)
+        self.write_album_real_dates(album_id, name, path)
+        
     def write_album_info(self, album_id, name, path):
         """
         Write TAB delimited file of album information.
