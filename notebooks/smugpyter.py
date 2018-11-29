@@ -471,6 +471,7 @@ class SmugPyter(object):
                          'TotalSizes': album_info['TotalSizes'],
                          'SortMethod': album_info['SortMethod'],
                          'SortDirection': album_info['SortDirection'],
+                         'ParentFolders': self.purify_smugmug_text(album_info['Uris']['ParentFolders']['Uri']),
                          'Description': self.purify_smugmug_text(album_info['Description'])}
         rows = []
         rows.append(selected_info)
@@ -487,6 +488,14 @@ class SmugPyter(object):
     def write_album_manifest(self, album_id, name, path):
         """
         Write TAB delimited file of SmugMug image metadata.
+        
+        Example call:
+            
+        smug.write_album_manifest('9NVXV3',
+           'WashingtonDC2007',
+           'C:/SmugMirror/Mirror/Trips/USAandCanada/WashingtonDC2007'
+        )
+         
         """
         album_images = self.get_album_images(album_id)
         if len(album_images) == 0:
@@ -510,6 +519,14 @@ class SmugPyter(object):
         to wild guesses about century old prints. SmugMug 
         requires a full date and it looks in a number
         of places for full dates, see: (get_image_date).
+        
+        Example call:
+            
+        smug.write_album_real_dates('9NVXV3',
+           'WashingtonDC2007',
+           'C:/SmugMirror/Mirror/Trips/USAandCanada/WashingtonDC2007'
+        )
+        
         """
 
         # If the current folder has a real dates file look
