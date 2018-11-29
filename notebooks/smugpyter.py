@@ -439,6 +439,15 @@ class SmugPyter(object):
 
         # if 'NextPage' in response['Response']['Pages']:
         #    self.mirror_folders_offline(pages['NextPage'], root_dir)
+        
+    def download_album_metadata(self):
+        albums = self.get_albums()
+        for album in albums:
+            
+            #parent_folders = (album['AlbumKey'])['Uris']['ParentFolders']['Uri']
+            ainfo = self.get_album_info(album['AlbumKey'])
+            parent_folders = ainfo['Uris']['ParentFolders']['Uri']
+            print(parent_folders)
 
     def download_smugmug_mirror(self, func_album=None, func_folder=None):
         """
@@ -1107,7 +1116,16 @@ class SmugPyter(object):
         image_path[-1] = ''
         image_path = delimiter.join(image_path)
         return image_path
-
+    
+    @staticmethod
+    def local_path_from_parents(parent_folders, root):
+        """ parse ParentFolders and return local directory path """
+        path_list = ((parent_folders.replace('-','')).replace('!parents','')).split('/')
+        local_path = path_list[path_list.index('conceptcontrol'):]
+        local_path[0] = root
+        local_path.append('/')
+        local_path = "/".join(local_path)
+        return local_path.replace('//','/')
 
 # if __name__ == '__main__':
 #
