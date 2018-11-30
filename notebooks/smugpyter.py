@@ -442,13 +442,18 @@ class SmugPyter(object):
         
     def download_album_metadata(self):
         albums = self.get_albums()
-        for album in albums:
+        album_count = len(albums)
+        print("Scanning %s albums" % album_count)
+        for i, album in enumerate(albums):
             ainfo = self.get_album_info(album['AlbumKey'])
+            print("visiting %s/%s %s ..." % (i + 1, album_count, ainfo['Name']))
             parent_folders = ainfo['Uris']['ParentFolders']['Uri']
             local_path = self.local_path_from_parents(parent_folders, self.local_directory)
+            if 0 == len(local_path):
+                print("skipping empty local path -> " + ainfo['Name'])
+                continue
             album_name = ((ainfo['Name']).replace(' ','')).replace("'",'')
             local_path = local_path + album_name
-            print(local_path)
             os.makedirs(local_path, exist_ok=True)
             self.write_album_metadata(album['AlbumKey'], album_name, local_path)
 
@@ -1123,14 +1128,15 @@ class SmugPyter(object):
     @staticmethod
     def local_path_from_parents(parent_folders, root):
         """ parse ParentFolders and return local directory path """
-        print(parent_folders)
-        path_list = ((parent_folders.replace('-','')).replace('!parents','')).split('/')
-        print(path_list)
-        local_path = path_list[path_list.index('conceptcontrol'):]
-        local_path[0] = root
-        local_path.append('/')
-        local_path = "/".join(local_path)
-        return local_path.replace('//','/')
+        try:
+            path_list = ((parent_folders.replace('-','')).replace('!parents','')).split('/')
+            local_path = path_list[path_list.index('conceptcontrol'):]
+            local_path[0] = root
+            local_path.append('/')
+            local_path = "/".join(local_path)
+            return local_path.replace('//','/')
+        except:
+            return ''
 
 # if __name__ == '__main__':
 #
