@@ -443,11 +443,14 @@ class SmugPyter(object):
     def download_album_metadata(self):
         albums = self.get_albums()
         for album in albums:
-            
-            #parent_folders = (album['AlbumKey'])['Uris']['ParentFolders']['Uri']
             ainfo = self.get_album_info(album['AlbumKey'])
             parent_folders = ainfo['Uris']['ParentFolders']['Uri']
-            print(parent_folders)
+            local_path = self.local_path_from_parents(parent_folders, self.local_directory)
+            album_name = ((ainfo['Name']).replace(' ','')).replace("'",'')
+            local_path = local_path + album_name
+            print(local_path)
+            os.makedirs(local_path, exist_ok=True)
+            self.write_album_metadata(album['AlbumKey'], album_name, local_path)
 
     def download_smugmug_mirror(self, func_album=None, func_folder=None):
         """
@@ -1120,7 +1123,9 @@ class SmugPyter(object):
     @staticmethod
     def local_path_from_parents(parent_folders, root):
         """ parse ParentFolders and return local directory path """
+        print(parent_folders)
         path_list = ((parent_folders.replace('-','')).replace('!parents','')).split('/')
+        print(path_list)
         local_path = path_list[path_list.index('conceptcontrol'):]
         local_path[0] = root
         local_path.append('/')

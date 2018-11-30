@@ -4,6 +4,16 @@
 Remarks about outstanding tasks and other `SmugPyter` issues.
 Base 36 GUIDS cross reference *the history* of `TODO.md`.
 
+## November 30, 2018
+
+* While implementing my nonrecursive gallery scan I noticed
+  that some local paths were not coming out as expected. The
+  problem had nothing to do with my code. The SmugMug API
+  picks up custom folder names when building `ParentFolders`
+  one of my folders had an embedded delimiter character that
+  confused my parent folder parsing. I will have to check
+  these settings for all my folders. 
+
 ### November 28, 2018
 
 * I have been using `SmugPyter` for a few months now - long
