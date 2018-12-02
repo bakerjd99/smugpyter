@@ -1,2 +1,2 @@
-AlbumKey	Name	ImageCount	LastUpdated	ImagesLastUpdated	OriginalSizes	TotalSizes	SortMethod	SortDirection	ParentFolders	Description
-XghWcL	Great and Greater Forebearers	13	2018-01-20T20:25:58+00:00	2018-01-20T20:26:02+00:00	36107658	65138361	Date Taken	Ascending	/api/v2/folder/user/conceptcontrol/People!parents	
+AlbumKey	Name	ImageCount	LastUpdated	ImagesLastUpdated	OriginalSizes	TotalSizes	SortMethod	SortDirection	ParentFolders	WebUri	Description
+XghWcL	Great and Greater Forebearers	13	2018-01-20T20:25:58+00:00	2018-01-20T20:26:02+00:00	36107658	65138361	Date Taken	Ascending	/api/v2/folder/user/conceptcontrol/People!parents	https://conceptcontrol.smugmug.com/People/Great-and-Greater-Forebearers	
