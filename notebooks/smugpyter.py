@@ -32,6 +32,10 @@ import re
 import shutil
 import csv
 
+# required to access mirror.db
+import sqlite3
+from datetime import datetime, timedelta
+
 
 class SmugPyter(object):
 
@@ -407,8 +411,8 @@ class SmugPyter(object):
         return uri
 
 
-# NOTE: folling function does not scan all galleries - retired - will soon delete -  
-        
+# NOTE: folling function does not scan all galleries - retired - will soon delete -
+
 #    def mirror_folders_offline(self, root_uri, root_dir, func_album=None, func_folder=None):
 #        """
 #        Recursively walk online SmugMug folders and albums and apply
@@ -436,31 +440,33 @@ class SmugPyter(object):
 #                if not func_album == None:
 #                    func_album(album_id, name, path)
 
-                # Queue for download
-                # master_albums_list.append(path)
-                #dl_queue.put({'node' : node, 'path' : path})
+        # Queue for download
+        # master_albums_list.append(path)
+        #dl_queue.put({'node' : node, 'path' : path})
 
         # if 'NextPage' in response['Response']['Pages']:
         #    self.mirror_folders_offline(pages['NextPage'], root_dir)
-        
+
     def download_album_metadata(self):
         albums = self.get_albums()
         album_count = len(albums)
         print("Scanning %s albums" % album_count)
         for i, album in enumerate(albums):
             ainfo = self.get_album_info(album['AlbumKey'])
-            print("visiting %s/%s %s ..." % (i + 1, album_count, ainfo['Name']))
+            print("visiting %s/%s %s ..." %
+                  (i + 1, album_count, ainfo['Name']))
             parent_folders = ainfo['Uris']['ParentFolders']['Uri']
-            local_path = self.local_path_from_parents(parent_folders, 
+            local_path = self.local_path_from_parents(parent_folders,
                                                       self.local_directory,
                                                       self.username)
             if 0 == len(local_path):
                 print("skipping empty local path -> " + ainfo['Name'])
                 continue
-            album_name = ((ainfo['Name']).replace(' ','')).replace("'",'')
+            album_name = ((ainfo['Name']).replace(' ', '')).replace("'", '')
             local_path = local_path + album_name
             os.makedirs(local_path, exist_ok=True)
-            self.write_album_metadata(album['AlbumKey'], album_name, local_path)
+            self.write_album_metadata(
+                album['AlbumKey'], album_name, local_path)
 
 #    def download_smugmug_mirror(self, func_album=None, func_folder=None):
 #        """
@@ -478,25 +484,25 @@ class SmugPyter(object):
 #            self.mirror_folders_offline(root_uri, root_folder + top_folder,
 #                                        func_album, func_folder)
 #        print("done")
-        
+
     def write_album_metadata(self, album_id, name, path):
         """
         Write one album's TAB delimited metadata files.
-        
+
         Example call:
-            
+
         smug.write_album_metadata('35K9VD',
            'BanffandJasper2006',
            'C:/SmugMirror/Mirror/Trips/USAandCanada/BanffandJasper2006'
         )
-            
+
         """
-    
+
         # write order matters
         self.write_album_info(album_id, name, path)
         self.write_album_manifest(album_id, name, path)
         self.write_album_real_dates(album_id, name, path)
-        
+
     def write_album_info(self, album_id, name, path):
         """
         Write TAB delimited file of album information.
@@ -529,14 +535,14 @@ class SmugPyter(object):
     def write_album_manifest(self, album_id, name, path):
         """
         Write TAB delimited file of SmugMug image metadata.
-        
+
         Example call:
-            
+
         smug.write_album_manifest('9NVXV3',
            'WashingtonDC2007',
            'C:/SmugMirror/Mirror/Trips/USAandCanada/WashingtonDC2007'
         )
-         
+
         """
         album_images = self.get_album_images(album_id)
         if len(album_images) == 0:
@@ -560,14 +566,14 @@ class SmugPyter(object):
         to wild guesses about century old prints. SmugMug 
         requires a full date and it looks in a number
         of places for full dates, see: (get_image_date).
-        
+
         Example call:
-            
+
         smug.write_album_real_dates('9NVXV3',
            'WashingtonDC2007',
            'C:/SmugMirror/Mirror/Trips/USAandCanada/WashingtonDC2007'
         )
-        
+
         """
 
         # If the current folder has a real dates file look
@@ -1026,6 +1032,36 @@ class SmugPyter(object):
         self.write_all_keyword_changes()
         return cnts
 
+    def recently_changed_galleries(self, days_before=0):
+        """
+        Get galleries that SmugMug marks as changed in the last (days_before) days.
+
+          # all galleries in descending last touch order
+          recently_changed_galleries() 
+
+          # galleries touched in last 150 days
+          recently_changed_galleries(150)
+
+        """
+
+        # default 0 gets all galleries
+        if days_before == 0:
+            after_days = ''
+        else:
+            past_date = (datetime.now() +
+                         timedelta(days=-days_before)).isoformat()
+            after_days = "where LastChange > '" + past_date + "' "
+
+        # changed galleries
+        cn = sqlite3.connect('c:/smugmirror/documents/xrefdb/mirror.db')
+        cursor = cn.cursor()
+        all_rows = cursor.execute("select AlbumName, AlbumKey, max(LastUpdated, ImagesLastUpdated) as LastChange \
+                          from Album  " + after_days + " order by LastChange desc")
+        all_rows = cursor.fetchall()
+        cn.close()
+
+        return all_rows
+
     @staticmethod
     def extract_alphanum(in_string):
         return "".join([ch for ch in in_string if ch in (ascii_letters + digits)])
@@ -1130,7 +1166,7 @@ class SmugPyter(object):
         image_path[-1] = ''
         image_path = delimiter.join(image_path)
         return image_path
-    
+
     @staticmethod
     def local_path_from_parents(parent_folders, root, username):
         """ parse ParentFolders and return local directory path """
@@ -1138,12 +1174,13 @@ class SmugPyter(object):
             # NOTE: the SmugMug parent folders uses any custom
             # folder names when building the path - make sure
             # no delimiter characters '- /' are embedded in custom names
-            path_list = ((parent_folders.replace('-','')).replace('!parents','')).split('/')
+            path_list = ((parent_folders.replace('-', '')
+                          ).replace('!parents', '')).split('/')
             local_path = path_list[path_list.index(username):]
             local_path[0] = root
             local_path.append('/')
             local_path = "/".join(local_path)
-            return local_path.replace('//','/')
+            return local_path.replace('//', '/')
         except:
             return ''
 
