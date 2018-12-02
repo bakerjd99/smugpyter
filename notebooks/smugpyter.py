@@ -83,6 +83,8 @@ class SmugPyter(object):
             self.log_file = config_parser.get('LOGGING', 'log_file')
             self.all_keyword_changes_file = config_parser.get(
                 'LOGGING', 'all_changes')
+            self.mirror_database = config_parser.get('SMUGMUG', 'mirror_database')
+            self.days_before = int(config_parser.get('SMUGMUG', 'days_before'))
         except:
             raise Exception(
                 "Config file is missing or corrupted. Run 'python smugpyter.py'")
@@ -1037,10 +1039,10 @@ class SmugPyter(object):
         Get galleries that SmugMug marks as changed in the last (days_before) days.
 
           # all galleries in descending last touch order
-          recently_changed_galleries() 
+          smug.recently_changed_galleries() 
 
           # galleries touched in last 150 days
-          recently_changed_galleries(150)
+          smug.recently_changed_galleries(smug.days_before)
 
         """
 
@@ -1053,7 +1055,7 @@ class SmugPyter(object):
             after_days = "where LastChange > '" + past_date + "' "
 
         # changed galleries
-        cn = sqlite3.connect('c:/smugmirror/documents/xrefdb/mirror.db')
+        cn = sqlite3.connect(self.mirror_database)
         cursor = cn.cursor()
         all_rows = cursor.execute("select AlbumName, AlbumKey, max(LastUpdated, ImagesLastUpdated) as LastChange \
                           from Album  " + after_days + " order by LastChange desc")
