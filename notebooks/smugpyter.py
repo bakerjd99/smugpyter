@@ -406,32 +406,35 @@ class SmugPyter(object):
         uri = response["Response"]["Node"]["Uris"]["ChildNodes"]["Uri"]
         return uri
 
-    def mirror_folders_offline(self, root_uri, root_dir, func_album=None, func_folder=None):
-        """
-        Recursively walk online SmugMug folders and albums and apply
-        functions (func_album) and (func_folder).
-        """
-        root_uri = (self.smugmug_base_uri + '%s') % root_uri
-        if not '!children' in root_uri:
-            root_uri += '!children'
-        #print('url = ' + root_uri)
-        response = self.request('GET', root_uri, headers={
-                                'Accept': 'application/json'})
-        for node in response["Response"]["Node"]:
-            name = self.extract_alphanum(node["Name"])
-            path = '%s/%s' % (root_dir, name)
-            # print(path)
-            os.makedirs(path, exist_ok=True)
-            if node["Type"] == 'Folder':
-                if not func_folder == None:
-                    func_folder(name, path)
-                self.mirror_folders_offline(node["Uri"], path, func_album)
-            elif node['Type'] == 'Album':
-                print('visiting album ' + name)
-                uri = node["Uris"]["Album"]["Uri"]
-                album_id = uri.split('/')[-1]
-                if not func_album == None:
-                    func_album(album_id, name, path)
+
+# NOTE: folling function does not scan all galleries - retired - will soon delete -  
+        
+#    def mirror_folders_offline(self, root_uri, root_dir, func_album=None, func_folder=None):
+#        """
+#        Recursively walk online SmugMug folders and albums and apply
+#        functions (func_album) and (func_folder).
+#        """
+#        root_uri = (self.smugmug_base_uri + '%s') % root_uri
+#        if not '!children' in root_uri:
+#            root_uri += '!children'
+#        #print('url = ' + root_uri)
+#        response = self.request('GET', root_uri, headers={
+#                                'Accept': 'application/json'})
+#        for node in response["Response"]["Node"]:
+#            name = self.extract_alphanum(node["Name"])
+#            path = '%s/%s' % (root_dir, name)
+#            # print(path)
+#            os.makedirs(path, exist_ok=True)
+#            if node["Type"] == 'Folder':
+#                if not func_folder == None:
+#                    func_folder(name, path)
+#                self.mirror_folders_offline(node["Uri"], path, func_album)
+#            elif node['Type'] == 'Album':
+#                print('visiting album ' + name)
+#                uri = node["Uris"]["Album"]["Uri"]
+#                album_id = uri.split('/')[-1]
+#                if not func_album == None:
+#                    func_album(album_id, name, path)
 
                 # Queue for download
                 # master_albums_list.append(path)
@@ -448,7 +451,9 @@ class SmugPyter(object):
             ainfo = self.get_album_info(album['AlbumKey'])
             print("visiting %s/%s %s ..." % (i + 1, album_count, ainfo['Name']))
             parent_folders = ainfo['Uris']['ParentFolders']['Uri']
-            local_path = self.local_path_from_parents(parent_folders, self.local_directory)
+            local_path = self.local_path_from_parents(parent_folders, 
+                                                      self.local_directory,
+                                                      self.username)
             if 0 == len(local_path):
                 print("skipping empty local path -> " + ainfo['Name'])
                 continue
@@ -457,22 +462,22 @@ class SmugPyter(object):
             os.makedirs(local_path, exist_ok=True)
             self.write_album_metadata(album['AlbumKey'], album_name, local_path)
 
-    def download_smugmug_mirror(self, func_album=None, func_folder=None):
-        """
-        Walk SmugMug folders and albums and apply functions (func_album) and (func_folder).
-
-            smug = SmugPyter()
-            smug.download_smugmug_mirror(func_album=smug.write_album_manifest)
-            smug.download_smugmug_mirror(func_album=smug.write_album_info)
-        """
-        root_folder = self.local_directory
-        folders = self.get_folders()
-        for folder in folders:
-            root_uri = self.get_child_node_uri(folder["NodeID"])
-            top_folder = self.extract_alphanum(folder["Name"])
-            self.mirror_folders_offline(root_uri, root_folder + top_folder,
-                                        func_album, func_folder)
-        print("done")
+#    def download_smugmug_mirror(self, func_album=None, func_folder=None):
+#        """
+#        Walk SmugMug folders and albums and apply functions (func_album) and (func_folder).
+#
+#            smug = SmugPyter()
+#            smug.download_smugmug_mirror(func_album=smug.write_album_manifest)
+#            smug.download_smugmug_mirror(func_album=smug.write_album_info)
+#        """
+#        root_folder = self.local_directory
+#        folders = self.get_folders()
+#        for folder in folders:
+#            root_uri = self.get_child_node_uri(folder["NodeID"])
+#            top_folder = self.extract_alphanum(folder["Name"])
+#            self.mirror_folders_offline(root_uri, root_folder + top_folder,
+#                                        func_album, func_folder)
+#        print("done")
         
     def write_album_metadata(self, album_id, name, path):
         """
@@ -507,6 +512,7 @@ class SmugPyter(object):
                          'SortMethod': album_info['SortMethod'],
                          'SortDirection': album_info['SortDirection'],
                          'ParentFolders': self.purify_smugmug_text(album_info['Uris']['ParentFolders']['Uri']),
+                         'WebUri': self.purify_smugmug_text(album_info['WebUri']),
                          'Description': self.purify_smugmug_text(album_info['Description'])}
         rows = []
         rows.append(selected_info)
@@ -1126,11 +1132,14 @@ class SmugPyter(object):
         return image_path
     
     @staticmethod
-    def local_path_from_parents(parent_folders, root):
+    def local_path_from_parents(parent_folders, root, username):
         """ parse ParentFolders and return local directory path """
         try:
+            # NOTE: the SmugMug parent folders uses any custom
+            # folder names when building the path - make sure
+            # no delimiter characters '- /' are embedded in custom names
             path_list = ((parent_folders.replace('-','')).replace('!parents','')).split('/')
-            local_path = path_list[path_list.index('conceptcontrol'):]
+            local_path = path_list[path_list.index(username):]
             local_path[0] = root
             local_path.append('/')
             local_path = "/".join(local_path)
