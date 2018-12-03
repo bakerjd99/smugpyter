@@ -34,7 +34,11 @@ import csv
 
 # required to access mirror.db
 import sqlite3
+
+# handle iso date time string formats
 from datetime import datetime, timedelta
+import dateutil.parser
+import pytz
 
 
 class SmugPyter(object):
@@ -1034,9 +1038,9 @@ class SmugPyter(object):
         self.write_all_keyword_changes()
         return cnts
 
-    def recently_changed_galleries(self, days_before=0):
+    def changed_database_galleries(self, days_before=0):
         """
-        Get galleries that SmugMug marks as changed in the last (days_before) days.
+        Get galleries that SmugMug marked as changed in the last (days_before) days.
 
           # all galleries in descending last touch order
           smug.recently_changed_galleries() 
@@ -1063,6 +1067,30 @@ class SmugPyter(object):
         cn.close()
 
         return all_rows
+    
+    def changed_online_galleries(self, days_before=0):
+        """
+        Get online galleries SmugMug marked as changed in the last (day_before) days.
+        """
+        
+        albums = self.get_albums()
+        ainfos = [self.get_album_info(j) for j in [i['AlbumKey'] for i in albums]]
+        
+        # default is all galleries
+        if days_before == 0:
+            return ainfos
+        
+        from_date = datetime.now() + timedelta(days=-days_before)
+        from_date = pytz.utc.localize(from_date)
+        
+        # retain albums that are marked changed 
+        rinfos = []
+        for i, ainfo in enumerate(ainfos):
+            last_change = max(dateutil.parser.parse(ainfo['LastUpdated']), dateutil.parser.parse(ainfo['ImagesLastUpdated']))
+            if from_date < last_change:
+                rinfos.append(ainfo)
+                
+        return rinfos   
 
     @staticmethod
     def extract_alphanum(in_string):
