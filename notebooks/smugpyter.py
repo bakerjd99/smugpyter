@@ -454,6 +454,12 @@ class SmugPyter(object):
         #    self.mirror_folders_offline(pages['NextPage'], root_dir)
 
     def download_album_metadata(self, days_before=0):
+        
+        if days_before == 0:
+            print("Collecting all albums ... ")
+        else:
+            print("Collecting albums changed in the last %s days" % (days_before))
+            
         rinfos = self.changed_online_galleries(days_before=days_before)
         album_count = len(rinfos)
         print("Scanning %s albums" % album_count)
