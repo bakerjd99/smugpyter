@@ -455,6 +455,8 @@ class SmugPyter(object):
 
     def download_album_metadata(self, days_before=0):
         
+        start_time = time.clock()
+        
         if days_before == 0:
             print("Collecting all albums ... ")
         else:
@@ -478,6 +480,8 @@ class SmugPyter(object):
             os.makedirs(local_path, exist_ok=True)
             self.write_album_metadata(
                 ainfo, album_name, local_path)
+            
+        print("elasped seconds = %s" % (time.clock() - start_time))
 
 #    def download_smugmug_mirror(self, func_album=None, func_folder=None):
 #        """
