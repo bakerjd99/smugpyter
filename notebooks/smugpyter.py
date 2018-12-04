@@ -453,12 +453,11 @@ class SmugPyter(object):
         # if 'NextPage' in response['Response']['Pages']:
         #    self.mirror_folders_offline(pages['NextPage'], root_dir)
 
-    def download_album_metadata(self):
-        albums = self.get_albums()
-        album_count = len(albums)
+    def download_album_metadata(self, days_before=0):
+        rinfos = self.changed_online_galleries(days_before=days_before)
+        album_count = len(rinfos)
         print("Scanning %s albums" % album_count)
-        for i, album in enumerate(albums):
-            ainfo = self.get_album_info(album['AlbumKey'])
+        for i, ainfo in enumerate(rinfos):
             print("visiting %s/%s %s ..." %
                   (i + 1, album_count, ainfo['Name']))
             parent_folders = ainfo['Uris']['ParentFolders']['Uri']
@@ -472,7 +471,7 @@ class SmugPyter(object):
             local_path = local_path + album_name
             os.makedirs(local_path, exist_ok=True)
             self.write_album_metadata(
-                album['AlbumKey'], album_name, local_path)
+                ainfo, album_name, local_path)
 
 #    def download_smugmug_mirror(self, func_album=None, func_folder=None):
 #        """
@@ -491,7 +490,7 @@ class SmugPyter(object):
 #                                        func_album, func_folder)
 #        print("done")
 
-    def write_album_metadata(self, album_id, name, path):
+    def write_album_metadata(self, ainfo, name, path):
         """
         Write one album's TAB delimited metadata files.
 
@@ -505,31 +504,31 @@ class SmugPyter(object):
         """
 
         # write order matters
-        self.write_album_info(album_id, name, path)
-        self.write_album_manifest(album_id, name, path)
-        self.write_album_real_dates(album_id, name, path)
+        self.write_album_info(ainfo, name, path)
+        self.write_album_manifest(ainfo['AlbumKey'], name, path)
+        self.write_album_real_dates(ainfo['AlbumKey'], name, path)
 
-    def write_album_info(self, album_id, name, path):
+    def write_album_info(self, ainfo, name, path):
         """
         Write TAB delimited file of album information.
         """
-        album_info = self.get_album_info(album_id)
-        selected_info = {'AlbumKey': album_info['AlbumKey'],
-                         'Name': album_info['Name'],
-                         'ImageCount': album_info['ImageCount'],
-                         'LastUpdated': album_info['LastUpdated'],
-                         'ImagesLastUpdated': album_info['ImagesLastUpdated'],
-                         'OriginalSizes': album_info['OriginalSizes'],
-                         'TotalSizes': album_info['TotalSizes'],
-                         'SortMethod': album_info['SortMethod'],
-                         'SortDirection': album_info['SortDirection'],
-                         'ParentFolders': self.purify_smugmug_text(album_info['Uris']['ParentFolders']['Uri']),
-                         'WebUri': self.purify_smugmug_text(album_info['WebUri']),
-                         'Description': self.purify_smugmug_text(album_info['Description'])}
+        selected_info = {'AlbumKey': ainfo['AlbumKey'],
+                         'Name': ainfo['Name'],
+                         'ImageCount': ainfo['ImageCount'],
+                         'Date': ainfo['Date'],
+                         'LastUpdated': ainfo['LastUpdated'],
+                         'ImagesLastUpdated': ainfo['ImagesLastUpdated'],
+                         'OriginalSizes': ainfo['OriginalSizes'],
+                         'TotalSizes': ainfo['TotalSizes'],
+                         'SortMethod': ainfo['SortMethod'],
+                         'SortDirection': ainfo['SortDirection'],
+                         'ParentFolders': self.purify_smugmug_text(ainfo['Uris']['ParentFolders']['Uri']),
+                         'WebUri': self.purify_smugmug_text(ainfo['WebUri']),
+                         'Description': self.purify_smugmug_text(ainfo['Description'])}
         rows = []
         rows.append(selected_info)
-        mask = self.case_mask_encode(album_id)
-        ainfo_name = "ainfo-%s-%s-%s" % (name, album_id, mask)
+        mask = self.case_mask_encode(ainfo['AlbumKey'])
+        ainfo_name = "ainfo-%s-%s-%s" % (name, ainfo['AlbumKey'], mask)
         ainfo_file = path + "/" + ainfo_name + '.txt'
         keys = rows[0].keys()
         with open(ainfo_file, 'w', newline='') as output_file:
