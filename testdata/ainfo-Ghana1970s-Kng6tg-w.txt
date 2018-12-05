@@ -1,2 +1,2 @@
-AlbumKey	Name	ImageCount	LastUpdated	ImagesLastUpdated	OriginalSizes	TotalSizes	SortMethod	SortDirection	ParentFolders	WebUri	Description
-Kng6tg	Ghana 1970's	16	2018-10-07T18:49:34+00:00	2018-10-07T18:49:36+00:00	51724174	109252346	Date Taken	Ascending	/api/v2/folder/user/conceptcontrol/Places/Overseas!parents	https://conceptcontrol.smugmug.com/Places/Overseas/Ghana-1970s	
+AlbumKey	Name	ImageCount	Date	LastUpdated	ImagesLastUpdated	OriginalSizes	TotalSizes	SortMethod	SortDirection	ParentFolders	WebUri	Description
+Kng6tg	Ghana 1970's	16	2009-01-12T01:44:58+00:00	2018-10-07T18:49:34+00:00	2018-10-07T18:49:36+00:00	51724174	109252346	Date Taken	Ascending	/api/v2/folder/user/conceptcontrol/Places/Overseas!parents	https://conceptcontrol.smugmug.com/Places/Overseas/Ghana-1970s	
