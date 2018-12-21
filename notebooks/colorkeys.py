@@ -4,8 +4,9 @@ import csv
 import webcolors
 import numpy as np
 import random
-from PIL import Image
+import math
 from math import sqrt
+from PIL import Image
 from sklearn.cluster import KMeans
 import smugpyter
 
@@ -16,13 +17,16 @@ class ColorKeys(smugpyter.SmugPyter):
     resize_factor = 0.4
     num_clusters = 8
     
+    # used to set pixel dimensions for rule of thirds patches
+    portion = 5
+    
     # overly dominant colors - these colors will be
     # assigned to frequently by the default selection
     over_dominant = ['darkslategrey', 'black', 'dimgrey', 'darkgrey',
                      'grey', 'darkolivegreen', 'silver']
     
     # number between (0,1) - 0.10 means select roughly 10% of the time
-    over_threshold = 0.10  
+    over_threshold = 0.35  
     
     
     def __init__(self):
@@ -41,7 +45,67 @@ class ColorKeys(smugpyter.SmugPyter):
             closest_name , rgb_distance = self.closest_color(requested_color)
             actual_name = None
         return (actual_name, closest_name, rgb_distance) 
-
+    
+    
+    def pixel_selections(self, image, *, sample=False, factor=0.4, portion=5, pixel_func=None):
+        """
+        Returns a tuple of pixel selections from an image. The first item
+        contains all the pixels of the resized image and the second
+        contains a subset chosen by (pixel_func) when (sample) is (True)
+        and (pixel_func) exists.
+        """
+        imcopy = self.resize_image(image, factor=factor)
+        ar = np.asarray(imcopy)
+        all_pixels = ar.reshape((-1,3))
+        some_pixels = None if not sample else None if pixel_func is None else pixel_func(ar, portion=portion)
+        return (all_pixels, some_pixels)
+    
+    
+    def name_freq_dist_from_pixels(self, pixels, num_clusters=8):
+        """
+        Return a tuple of color names, frequencies and distances from raw RGB colors.
+        """
+        km = KMeans(n_clusters=num_clusters)
+        km.fit(pixels)
+        colors = np.asarray(km.cluster_centers_, dtype=np.uint8)
+        frequencies = np.asarray(np.unique(km.labels_, return_counts = True)[1], dtype=np.int32)
+        names = []
+        distances = []
+        for color in colors:
+            _, name, rgb_distance = self.get_color_name(color)
+            names.append(name)
+            distances.append(rgb_distance)
+        return (names, frequencies, distances)
+    
+    
+    def dominant_color_key4(self, image, *, num_clusters=8, factor=0.4, portion=5, pixel_func=None):
+        """
+        This function combines the overall dominant color selection with
+        the dominant color from the rule of thirds regions. The basic
+        rule is take the color with the highest chromicity when
+        the overall and rule of third colors differ and the overall
+        color is not over dominant.
+        """  
+        pixels, some_pixels = self.pixel_selections(image, sample=True, 
+                                         factor=factor, portion=portion, 
+                                         pixel_func=pixel_func) 
+        # overall dominant color
+        names_freq_dist = self.name_freq_dist_from_pixels(pixels, num_clusters=num_clusters)
+        key_color = self.first_grade_color(names_freq_dist)
+        
+        # dominant rule of thirds color
+        if some_pixels is None:
+            rule3_color = key_color
+        else:
+            names_freq_dist = self.name_freq_dist_from_pixels(some_pixels, num_clusters=num_clusters)
+            rule3_color = self.first_grade_color(names_freq_dist)
+       
+        #print({'key_color':key_color, 'rule3_color':rule3_color})
+        dom_color = key_color
+        if (key_color != rule3_color) and (self.near_chromicity(key_color) < self.near_chromicity(rule3_color)):
+            dom_color = rule3_color
+            
+        return self.dominant_prefix + dom_color.lower().strip()
         
     def cluster_name_freq_dist(self, image, *, num_clusters=8, factor=0.4):
         """
@@ -71,6 +135,53 @@ class ColorKeys(smugpyter.SmugPyter):
         frequencies , distances = self.dualsort(frequencies, distances, reverse=True)
         return (names, frequencies, distances)
     
+    
+    def rulethirdsq(self, ar, *, portion=5):
+        """
+        Select pixels that are centered about the five rule of thirds
+        composition regions, upper left, upper right, lower left, 
+        lower right and center. The colors in these regions are likely
+        to be of greater "photographic" significance than pixels 
+        in other parts of the image.
+        """
+        assert ar.dtype == np.uint8
+    
+        # image dimensions
+        w = ar.shape[0]
+        h = ar.shape[1]
+        s = min(w,h)
+        
+        # all pixels as n x 3 
+        px = ar.reshape((-1, 3))
+        
+        # corner multiples
+        c = np.array([[1,1],[1,1],[1,2],[2,1],[2,2]])
+    
+        # nonzero pixel patch width and half-width 
+        d1 = max(1, s // portion)
+        d0 = max(1, s // (2 * portion))
+    
+        # pixel mask array
+        b = np.zeros((w,h), dtype=np.uint8)
+    
+        # set rule of thirds pixel coordinates
+        for n, p in enumerate(c):
+    
+            if n == 0:
+                uc= np.array([(p[0] * w)//2, (p[1] * h)//2]) - d0 # center
+            else:
+                uc= np.array([(p[0] * w)//3, (p[1] * h)//3]) - d0 # corners
+    
+            for i in range(d1):
+                for j in range(d1):
+                    b[uc[0] + i, uc[1] + j] = 1
+                 
+        # ravel mask array and select rule of thirds pixels
+        b = b.reshape(-1,)
+        px = px[np.where(b==1)] 
+    
+        return px
+ 
     
     def dominant_color_key(self, names_freqs_dists):
         """
@@ -118,8 +229,9 @@ class ColorKeys(smugpyter.SmugPyter):
         (changed_keyords) is a list of dictionaries in (csv.DictWriter) format.
         
             ck = ColorKeys()
-            manifest_file = 'c:\SmugMirror\Mirror\Places\Overseas\Ghana1970s\manifest-Ghana1970s-Kng6tg-w.txt'
-            ck.color_keywords(manifest_file)
+            manifest_file1 = 'c:/SmugMirror/Mirror/Places/Overseas/Ghana1970s/manifest-Ghana1970s-Kng6tg-w.txt'
+            manifest_file2 = 'c:/SmugMirror/Mirror/Other/utilimages/manifest-utilimages-GMLn9k-1k.txt'
+            ck.color_keywords(manifest_file1)
         """
         changes_dict = {}
         if self.merge_changes:
@@ -157,19 +269,19 @@ class ColorKeys(smugpyter.SmugPyter):
                     continue
                 
                 # read sample image file and compute color key
-                image = Image.open(image_file_name)
+                image = Image.open(image_file_name).convert('RGB')
                 try:
-                    names_freqs_dists = self.cluster_name_freq_dist(image, 
-                                                                    num_clusters=self.num_clusters,
-                                                                    factor=self.resize_factor)
+                    color_key = self.dominant_color_key4(image, 
+                                                         num_clusters=self.num_clusters,
+                                                         factor=self.resize_factor,
+                                                         portion=self.portion,
+                                                         pixel_func=self.rulethirdsq)
                 except:
                     # some images cannot be processed - log for inspection
                     error_message = "cannot compute color key -> " + image_file_name
                     self.append_to_log(error_message)
                     continue
                 
-    
-                color_key = self.dominant_color_key(names_freqs_dists)
                 same, keywords = self.update_keywords(color_key, 
                                                       inwords,
                                                       key_pattern=r"\d+?[_]",
@@ -208,8 +320,37 @@ class ColorKeys(smugpyter.SmugPyter):
             ck.update_all_color_keyword_changes('c:\SmugMirror\Mirror')
         """
         return self.scan_do_local_files(root, func_do=self.write_color_keyword_changes)
+    
+    
+    def near_chromicity(self, color_name):
+        """
+        Calculate a named color's approximate chromicity. The
+        higher the value the "less neutral" the color is. The
+        eye is drawn to intense colors over neutral ones.
+        """
+        r, g, b = webcolors.name_to_rgb(color_name)
+        m = math.ceil( (int(r)+int(g)+int(b))/3 )
+        return sqrt( (int(r)-m)**2 + (int(g)-m)**2 + (int(b)-m)**2 )
+    
+    
+    def color_grade(self, names_freq_dist):
+        """Compute color metric"""
+        cnorm = lambda v: v/max(v)
+        n, f, d = names_freq_dist
+        d = 1.0 - cnorm(np.array(d))
+        f = cnorm(np.array(f))
+        nc = cnorm(np.array([self.near_chromicity(i) for i in n]))
+        return f**2 + d**2 + nc**2
+    
+    
+    def first_grade_color(self, names_freq_dist):
+        """Select the color with the highest grade"""
+        grades = self.color_grade(names_freq_dist)
+        names, _, _ = names_freq_dist
+        _, names = self.dualsort(grades, names, reverse=True)
+        return names[0]
                 
-
+    
     @staticmethod
     def most_common(lst):
         """ Pick most common item in a list - ok for small lists."""
@@ -230,20 +371,18 @@ class ColorKeys(smugpyter.SmugPyter):
     
     
     @staticmethod
-    def resize_image(image, *, factor=0.4, small_side=100):
+    def resize_image(image, factor=0.4, small_side=100):
         """Resize PIL image maintaining aspect ratio."""
         imcopy = image.copy()
-        
         # do not resize very small images
         if max(imcopy.size) < small_side:
             return imcopy
-        
-        #print(imcopy.size)
         width, height = imcopy.size
-        width = int(factor * width)
-        height = int(factor * height) 
+        # insure no zero dimensions
+        width = max(1,int(factor * width))
+        height = max(1,int(factor * height))
         return imcopy.resize((width, height))
-
+    
 
 #if __name__ == '__main__':
 #    ck = ColorKeys()

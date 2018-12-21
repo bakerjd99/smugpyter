@@ -4,7 +4,29 @@
 Remarks about outstanding tasks and other `SmugPyter` issues.
 Base 36 GUIDS cross reference *the history* of `TODO.md`.
 
-## November 30, 2018
+### December 20, 2018
+
+ * I've spent more time than I should have experimenting with
+   variations on how I am computing color keys in `colorkeys.py`.
+   I've opted to go with a revised algorithm that grades colors
+   by a metric that rolls frequency, distance and *chromicity*
+   into a single value defined thus:
+
+   $$m = f_i^2 + (1 - d_i)^2 + c_i^2$$
+
+   Keys with high $m$ values will be frequent, close and "colorful."
+   
+   This algorithm results in more evenly distributed colors than
+   prior methods. It draws from the same `webcolors` list of named
+   colors and uses the same color key syntax.
+
+   See this this notebook for details.
+   
+   [
+Finding Dominant Color Names from Color Space Coordinates and Images
+](https://github.com/bakerjd99/smugpyter/blob/master/notebooks/Finding%20Dominant%20Color%20Names%20from%20Color%20Space%20Coordinates%20and%20Images.ipynb)
+
+### November 30, 2018
 
 * While implementing my nonrecursive gallery scan I noticed
   that some local paths were not coming out as expected. The

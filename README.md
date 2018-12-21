@@ -16,5 +16,7 @@ The notebooks are best used in this order.
 
 5. [Using SmugPyter Batch Scripts](https://github.com/bakerjd99/smugpyter/blob/master/notebooks/Using%20SmugPyter%20Batch%20Scripts.ipynb)
 
+6. [Unified XKCD Colors](https://github.com/bakerjd99/smugpyter/blob/master/notebooks/Unified%20XKCD%20Colors.ipynb)
+
 John Baker
-April 7, 2018
+December 20, 2018
