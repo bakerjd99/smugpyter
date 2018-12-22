@@ -1197,10 +1197,9 @@ class SmugPyter(object):
     @staticmethod
     def image_path_from_file(manifest_file):
         """  Extract path from fully qualified manifest file names """
-        if '\\' in manifest_file and '/' in manifest_file:
-            raise ValueError(
-                "use either win or unix path delimiters - not both")
-        delimiter = '\\' if '\\' in manifest_file else '/'
+        # standarize path delimiters
+        manifest_file = manifest_file.replace('\\','/')
+        delimiter = '/'
         image_path = manifest_file.split(delimiter)
         image_path[-1] = ''
         image_path = delimiter.join(image_path)
@@ -1210,9 +1209,10 @@ class SmugPyter(object):
     def local_path_from_parents(parent_folders, root, username):
         """ parse ParentFolders and return local directory path """
         try:
-            # NOTE: the SmugMug parent folders uses any custom
-            # folder names when building the path - make sure
-            # no delimiter characters '- /' are embedded in custom names
+            # NOTE: SmugMug parent folders use custom
+            # folder names set on the website by the user 
+            # when building the path - make sure no delimiter
+            # characters '- /' are embedded in custom names.
             path_list = ((parent_folders.replace('-', '')
                           ).replace('!parents', '')).split('/')
             local_path = path_list[path_list.index(username):]
