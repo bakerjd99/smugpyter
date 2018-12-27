@@ -6,9 +6,9 @@ import smugpyter
 
 class GeotagKeys(smugpyter.SmugPyter):
 
-    def __init__(self, verbose=False):
+    def __init__(self, *, verbose=False, yammer=False, log_start=False):
         """ class constructor """
-        super().__init__()
+        super().__init__(log_start=log_start, yammer=yammer, verbose=verbose)
 
     def geotag_images(self, manifest_file, *, split_delimiter=';', geotag_key='geotagged'):
         """
@@ -87,6 +87,7 @@ class GeotagKeys(smugpyter.SmugPyter):
         """
         Reverse geocode images with nonzero latitude and longitude.
         """
+        changed_keywords = []
         image_count, change_count = 0, 0
         with open(manifest_file, 'r') as f:
             reader = csv.DictReader(f, dialect='excel', delimiter='\t')
@@ -123,9 +124,44 @@ class GeotagKeys(smugpyter.SmugPyter):
                             inkeys), (split_delimiter+' ').join(outkeys))
                         if not same:
                             change_count += 1
-                            self.change_image_keywords(key, new_keywords, row)
-        return (image_count, change_count)
+                            if self.verbose == True:
+                                print(row['FileName'] + ' | ' + new_keywords)
+                            key_change = {'ImageKey': key, 'AlbumKey': row['AlbumKey'],
+                                             'FileName': row['FileName'], 'Keywords': new_keywords}
+                            changed_keywords.append(key_change)
+                            self.all_keyword_changes[key] = key_change
+                            
+        # when no images are changed return a header place holder row
+        if change_count == 0:
+            changed_keywords.append({'ImageKey': None, 'AlbumKey': None, 'FileName': None,
+                                     'Keywords': None})
+            
+        return (image_count, change_count, changed_keywords)
+    
+    def write_geotag_keyword_changes(self, manifest_file):
+        """
+        Write TAB delimited file of changed geotag keywords.
+        Return album and keyword (image_count, change_count) tuple.
 
+            manifest_file = r'c:\SmugMirror\Places\Overseas\Ghana1970s\manifest-Ghana1970s-Kng6tg-w.txt'
+            write_geotag_keyword_changes(manifest_file)  
+        """
+        return self.write_keyword_changes(manifest_file, func_keywords=self.reverse_geocode_images)
+    
+    def update_all_geotag_keyword_changes(self, root):
+        """
+        Scan all manifest files in local directories and
+        generate TAB delimited CSV print size keyword changes files.
+
+            gk = GeotagKeys()
+            gk.update_all_geotag_keyword_changes(pk.local_directory)
+        """
+        print("processing geotag keys")
+        self.all_keyword_changes = {}
+        imc = self.scan_do_local_files(root, func_do=self.write_geotag_keyword_changes)
+        self.write_all_keyword_changes(self.all_geotag_changes_file)
+        return imc
+    
     def set_all_reverse_geocodes(self, root):
         """
         Scan all manifest files in local directories and set

@@ -59,7 +59,7 @@ class SmugPyter(object):
     # cannot create SmugPyter objects if this file is missing
     smugmug_config = os.path.join(os.path.expanduser("~"), '.smugpyter.cfg')
 
-    def __init__(self, verbose=False, yammer=True):
+    def __init__(self, *, verbose=False, yammer=True, log_start=False):
         """
         Constructor. 
         Loads the config file and initialises the smugmug service
@@ -87,6 +87,10 @@ class SmugPyter(object):
             self.log_file = config_parser.get('LOGGING', 'log_file')
             self.all_keyword_changes_file = config_parser.get(
                 'LOGGING', 'all_changes')
+            self.all_geotag_changes_file = config_parser.get(
+                'LOGGING', 'geo_changes')
+            self.all_sizetag_changes_file = config_parser.get(
+                'LOGGING', 'size_changes')
             self.mirror_database = config_parser.get('SMUGMUG', 'mirror_database')
             self.days_before = int(config_parser.get('SMUGMUG', 'days_before'))
         except:
@@ -110,7 +114,8 @@ class SmugPyter(object):
             method='GET', params={'oauth_callback': 'oob'})
         self.smugmug_session = self.smugmug_service.get_session((self.access_token,
                                                                  self.access_token_secret))
-        self.append_to_log("SmugPyter started: " + time.ctime())
+        if log_start:
+            self.append_to_log("SmugPyter started: " + time.ctime())
 
     def append_to_log(self, text):
         """ Append text to simple log file - creates if missing"""
@@ -841,15 +846,15 @@ class SmugPyter(object):
         image_key = row['ImageKey']
         self.all_keyword_changes[image_key] = row
 
-        r = requests.patch(url=self.smugmug_api_base_url + '/image/' + image_id,
-                           auth=self.auth,
-                           data=json.dumps({"Keywords": keywords}),
-                           headers={'Accept': 'application/json',
-                                    'Content-Type': 'application/json'},
-                           allow_redirects=False)
-        if r.status_code != 301:
-            # NIMP: need a better exception type
-            raise ValueError("PATCH request to change keywords failed")
+#        r = requests.patch(url=self.smugmug_api_base_url + '/image/' + image_id,
+#                           auth=self.auth,
+#                           data=json.dumps({"Keywords": keywords}),
+#                           headers={'Accept': 'application/json',
+#                                    'Content-Type': 'application/json'},
+#                           allow_redirects=False)
+#        if r.status_code != 301:
+#            # NIMP: need a better exception type
+#            raise ValueError("PATCH request to change keywords failed")
 
         return (True, image_id)
 
@@ -882,7 +887,8 @@ class SmugPyter(object):
         as a single dictionary keyed on (ImageKey).
 
             smug = SmugPyter()
-            smug.image_dict_from_csv(r'c:\SmugMirror\Mirror\Places\Overseas\Ghana1970s\manifest-Ghana1970s-Kng6tg-w.txt') 
+            mf0 = r'c:\SmugMirror\Mirror\Places\Overseas\Ghana1970s\manifest-Ghana1970s-Kng6tg-w.txt'
+            smug.image_dict_from_csv(mf0) 
         """
         image_dict = {}
         with open(image_file, 'r') as f:
@@ -893,7 +899,38 @@ class SmugPyter(object):
                 image_key = row['ImageKey']
                 image_dict[image_key] = row
         return image_dict
-
+    
+    def merge_keywords_from_csv(self, csv_file, image_dict, *, split_delimiter=';'):    
+        """
+        Reads a change file and an existing dictionary and merges
+        change file keywords with any corresponding dictionary keywords.
+        
+            smug = SmugPyter()
+            chg0 = r'c:/SmugMirror/Mirror/Places/USAandCanada/Minnesota/changes-Minnesota-Rrzd8K-x.txt'
+            chg1 = r'c:/SmugMirror/Mirror/Places/USAandCanada/Minnesota/changes-Minnesota-Rrzd8K-x.txt'
+            img_dict = smug.image_dict_from_csv(chg0)
+            smug.merge_keywords_from_csv(chg1, img_dict)
+        """       
+        with open(csv_file, 'r') as f:
+            reader = csv.DictReader(f, dialect='excel', delimiter='\t')
+            for row in reader:
+                bad_row = row["ImageKey"] is None or row["ImageKey"] == ""
+                bad_row = bad_row or row["Keywords"] is None 
+                if bad_row:
+                    raise ValueError("(ImageKey, Keywords) missing in -> " + csv_file)
+                image_key = row['ImageKey']
+                csv_keys = row["Keywords"]
+                # merge in keyword changes to image dictionary
+                if image_key in image_dict:
+                    dict_row = image_dict[image_key]
+                    merge_keys = dict_row["Keywords"]
+                    merge_keys = merge_keys + split_delimiter + csv_keys
+                    merge_keys = self.standard_keywords(merge_keys, split_delimiter=split_delimiter)
+                    merge_keys = (split_delimiter + ' ').join(merge_keys)
+                    dict_row["Keywords"] = merge_keys
+                    image_dict[image_key] = dict_row                 
+        return image_dict      
+        
     def show_yammer(self, message):
         """ conditional yammer message """
         if self.yammer:
@@ -948,20 +985,23 @@ class SmugPyter(object):
         outkeys = self.standard_keywords(split_delimiter.join(outkeys))
         return (set(outkeys) == set(inkeys), (split_delimiter+' ').join(outkeys))
 
-    def reset_changes_file(self, manifest_file):
+    def reset_changes_file(self, manifest_file, *, overall_file=None):
         """
         Empties all changes files.
         Result is a tuple (image_count, change_count).
 
             smug = SmugPyter()
-            manifest_file = 'c:\SmugMirror\Mirror\Places\Overseas\Ghana1970s\manifest-Ghana1970s-Kng6tg-w.txt'
+            manifest_file = r'c:\SmugMirror\Mirror\Places\Overseas\Ghana1970s\manifest-Ghana1970s-Kng6tg-w.txt'
             smug.reset_changes_file(manifest_file)
         """
         changed_keywords = []
         changed_keywords.append({'ImageKey': None, 'AlbumKey': None,
                                  'FileName': None, 'Keywords': None})
         image_count, change_count = 0, 0
-        changes_file = self.changes_filename(manifest_file)
+        if overall_file is None:
+            changes_file = self.changes_filename(manifest_file)
+        else:
+            changes_file = overall_file
         keys = changed_keywords[0].keys()
         with open(changes_file, 'w', newline='') as output_file:
             dict_writer = csv.DictWriter(
@@ -978,6 +1018,9 @@ class SmugPyter(object):
             smug = SmugPyter()
             smug.reset_all_changes_files(r'c:\SmugMirror\Mirror')
         """
+        self.reset_changes_file('', overall_file=self.all_keyword_changes_file)
+        self.reset_changes_file('', overall_file=self.all_geotag_changes_file)
+        self.reset_changes_file('', overall_file=self.all_sizetag_changes_file)
         return self.scan_do_local_files(root, func_do=self.reset_changes_file)
 
     def write_keyword_changes(self, manifest_file, func_keywords):
@@ -1003,7 +1046,7 @@ class SmugPyter(object):
                 dict_writer.writerows(keyword_changes)
         return(image_count, change_count)
 
-    def write_all_keyword_changes(self):
+    def write_all_keyword_changes(self, csv_output_file):
         """
         Write TAB delimited file of all keyword change requests.
         This file makes it easier to apply manual changes when
@@ -1025,7 +1068,7 @@ class SmugPyter(object):
             change_list.append(self.all_keyword_changes[key])
 
         keys = change_list[0].keys()
-        with open(self.all_keyword_changes_file, 'w', newline='') as output_file:
+        with open(csv_output_file, 'w', newline='') as output_file:
             dict_writer = csv.DictWriter(
                 output_file, keys, dialect='excel-tab')
             dict_writer.writeheader()
@@ -1044,7 +1087,7 @@ class SmugPyter(object):
         self.all_keyword_changes = {}
         cnts = self.scan_do_local_files(root, pattern='changes-',
                                         func_do=self.change_keywords)
-        self.write_all_keyword_changes()
+        self.write_all_keyword_changes(self.all_keyword_changes_file)
         return cnts
 
     def changed_database_galleries(self, days_before=0):
@@ -1172,13 +1215,14 @@ class SmugPyter(object):
         else:
             keys = ' '.join(keywords.split())
             keys = split_delimiter.join(
-                [s.strip().lower() for s in keys.split(split_delimiter)])
+                [s.strip().lower() for s in keys.split(split_delimiter) if 0 < len(s)])
             keys = ''.join(blank_fill if c == ' ' else c for c in keys)
             # replace some keywords with others
             for k, s in substitutions:
                 keys = keys.replace(k, s)
             # return sorted list
             keylist = [s for s in keys.split(split_delimiter)]
+            keylist = list(set(keylist))
             return sorted(keylist)
 
     @staticmethod
@@ -1223,11 +1267,12 @@ class SmugPyter(object):
         except:
             return ''
 
-# if __name__ == '__main__':
+#if __name__ == '__main__':
 #
 #    smug = SmugPyter()
-#    smug.yammer = True
-#
-#    # smug.change_keywords('C:\SmugMirror\Themes\Diaries\CellPhoningItIn\changes-CellPhoningItIn-PfCsJz-16.txt')
-#
-#    smug.update_all_keyword_changes(r'c:\SmugMirror\Mirror')
+#    chg0 = r'c:/SmugMirror/Mirror/Places/USAandCanada/Minnesota/changes-Minnesota-Rrzd8K-x.txt'
+#    chg1 = r'c:/SmugMirror/Mirror/Places/USAandCanada/Minnesota/changes-Minnesota-Rrzd8K-x.txt'
+#    img_dict = smug.image_dict_from_csv(chg0)
+#    smug.merge_keywords_from_csv(chg1, img_dict)
+   
+    

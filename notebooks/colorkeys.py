@@ -29,9 +29,9 @@ class ColorKeys(smugpyter.SmugPyter):
     # number between (0,1) - 0.10 means select roughly 10% of the time
     over_threshold = 0.35
 
-    def __init__(self):
+    def __init__(self, *, verbose=False, yammer=False, log_start=False):
         """ class constructor """
-        super().__init__()
+        super().__init__(log_start=log_start, yammer=yammer, verbose=verbose)
 
     def get_color_name(self, requested_color):
         """ 
@@ -236,6 +236,7 @@ class ColorKeys(smugpyter.SmugPyter):
         if self.merge_changes:
             changes_file = self.changes_filename(manifest_file)
             changes_dict = self.image_dict_from_csv(changes_file)
+            changes_dict = self.merge_keywords_from_csv(self.all_sizetag_changes_file, changes_dict)
         merge_keys = self.merge_changes and 0 < len(changes_dict)
 
         image_path = self.image_path_from_file(manifest_file)
@@ -282,15 +283,19 @@ class ColorKeys(smugpyter.SmugPyter):
                     self.append_to_log(error_message)
                     continue
 
-                same, keywords = self.update_keywords(color_key,
+                same, new_keywords = self.update_keywords(color_key,
                                                       inwords,
                                                       key_pattern=r"\d+?[_]",
                                                       split_delimiter=split_delimiter)
                 if not same:
                     change_count += 1
-                    changed_keywords.append({'ImageKey': key, 'AlbumKey': row['AlbumKey'],
-                                             'FileName': row['FileName'], 'Keywords': keywords})
-
+                    if self.verbose == True:
+                        print(row['FileName'] + ' | ' + new_keywords)
+                    key_change = {'ImageKey': key, 'AlbumKey': row['AlbumKey'],
+                                  'FileName': row['FileName'], 'Keywords': new_keywords}
+                    changed_keywords.append(key_change)
+                    self.all_keyword_changes[key] = key_change
+                    
         # when no images are changed return a header place holder row
         if change_count == 0:
             changed_keywords.append({'ImageKey': None, 'AlbumKey': None, 'FileName': None,
@@ -315,9 +320,13 @@ class ColorKeys(smugpyter.SmugPyter):
         generate TAB delimited CSV print size keyword changes files.
 
             ck = ColorKeys()
-            ck.update_all_color_keyword_changes('c:\SmugMirror\Mirror')
+            ck.update_all_color_keyword_changes(ck.local_directory)
         """
-        return self.scan_do_local_files(root, func_do=self.write_color_keyword_changes)
+        print("processing color keys")
+        self.all_keyword_changes = {}
+        imc = self.scan_do_local_files(root, func_do=self.write_color_keyword_changes)
+        self.write_all_keyword_changes(self.all_keyword_changes_file)
+        return imc
 
     def near_chromicity(self, color_name):
         """
@@ -331,7 +340,7 @@ class ColorKeys(smugpyter.SmugPyter):
 
     def color_grade(self, names_freq_dist):
         """Compute color metric"""
-        def cnorm(v): return v/max(v)
+        cnorm = lambda v: v/(max(0.000001, max(v)))
         n, f, d = names_freq_dist
         d = 1.0 - cnorm(np.array(d))
         f = cnorm(np.array(f))
@@ -363,7 +372,7 @@ class ColorKeys(smugpyter.SmugPyter):
         return (min_colors[min(min_colors.keys())], sqrt(min(min_colors.keys())))
 
     @staticmethod
-    def resize_image(image, factor=0.4, small_side=100):
+    def resize_image(image, *, factor=0.4, small_side=100):
         """Resize PIL image maintaining aspect ratio."""
         imcopy = image.copy()
         # do not resize very small images

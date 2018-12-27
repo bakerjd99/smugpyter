@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import re
+#import re
 import csv
 import smugpyter
 
@@ -22,9 +22,9 @@ class PrintKeys(smugpyter.SmugPyter):
     print_areas = None
     size_keywords = None
 
-    def __init__(self, verbose=False):
+    def __init__(self, *, verbose=False, yammer=False, log_start=False):
         """ class constructor """
-        super().__init__()
+        super().__init__(log_start=log_start, yammer=yammer, verbose=verbose)
         self.smug_print_sizes = self.purify_smugmug_text(
             self.smug_default_sizes).split()
         (self.aspect_ratios, self.print_areas,
@@ -129,6 +129,7 @@ class PrintKeys(smugpyter.SmugPyter):
         if self.merge_changes:
             changes_file = self.changes_filename(manifest_file)
             changes_dict = self.image_dict_from_csv(changes_file)
+            changes_dict = self.merge_keywords_from_csv(self.all_geotag_changes_file, changes_dict)
         merge_keys = self.merge_changes and 0 < len(changes_dict)
 
         changed_keywords = []
@@ -149,11 +150,15 @@ class PrintKeys(smugpyter.SmugPyter):
                 height, width = int(row['OriginalHeight']), int(
                     row['OriginalWidth'])
                 size_key = self.print_size_key(height, width)
-                same, keywords = self.update_keywords(size_key, inwords)
+                same, new_keywords = self.update_keywords(size_key, inwords)
                 if not same:
                     change_count += 1
-                    changed_keywords.append({'ImageKey': key, 'AlbumKey': row['AlbumKey'],
-                                             'FileName': row['FileName'], 'Keywords': keywords})
+                    if self.verbose == True:
+                        print(row['FileName'] + ' | ' + new_keywords)
+                    key_change = {'ImageKey': key, 'AlbumKey': row['AlbumKey'],
+                                   'FileName': row['FileName'], 'Keywords': new_keywords}
+                    changed_keywords.append(key_change)
+                    self.all_keyword_changes[key] = key_change
 
         # when no images are changed return a header place holder row
         if change_count == 0:
@@ -180,7 +185,11 @@ class PrintKeys(smugpyter.SmugPyter):
             pk = PrintKeys()
             pk.update_all_size_keyword_changes(r'c:\SmugMirror')
         """
-        return self.scan_do_local_files(root, func_do=self.write_size_keyword_changes)
+        print("processing print size leys")
+        self.all_keyword_changes = {}
+        imc = self.scan_do_local_files(root, func_do=self.write_size_keyword_changes)
+        self.write_all_keyword_changes(self.all_sizetag_changes_file)
+        return imc
 
 
 # if __name__ == '__main__':
