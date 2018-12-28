@@ -4,6 +4,23 @@
 Remarks about outstanding tasks and other `SmugPyter` issues.
 Base 36 GUIDS cross reference *the history* of `TODO.md`.
 
+### December 27, 2018
+
+* I've reorganized the keyword calculations so they
+  can all be updated in one run. Prior to this change
+  I had to set geotag keywords on SmugMgug and collect
+  the changes before computing size and color keys.
+  Now I only need to:
+
+  1.  Refresh recent metadata.
+  2.  Update sample images.
+  3.  Update keywords.
+
+  All keyword changes are collected in `AllChanges.txt` 
+  when I figure out why `PATCH` is broken only the contents
+  of this file needs to be posted. In the meanwhile   `AllChanges.txt`
+  is handy for manual updates.
+
 ### December 20, 2018
 
  * I've spent more time than I should have experimenting with
