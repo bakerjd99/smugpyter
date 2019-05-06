@@ -6,15 +6,16 @@ import smugpyter
 
 class PrintKeys(smugpyter.SmugPyter):
 
+    # walmart sizes merged with SmugMug sizes
     smug_default_sizes = """
- 3.5x5  4x5    4x5.3  4x6    4x8    
- 5x5    5x6.7  5x7    5x10   5x30   
+ 3x4    3.5x5  4x4    4x5    4x5.3  4x6  4x8    
+ 5x5    5x6.7  5x7    6x6    6x8    5x10 5x30   
  7x10   8x8    8x10   8x10.6 8x12   
  8x16   8x20   8.5x11 9x12   10x10  
  10x13  10x15  10x16  10x20  10x30  
  11x14  11x16  11x28  12x12  12x18  
  12x20  12x24  12x30  16x20  16x24  
- 18x24  20x20  20x24  20x30 
+ 18x24  20x20  20x24  20x30  24x36
 """
 
     # print size key lists

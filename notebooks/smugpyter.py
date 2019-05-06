@@ -4,7 +4,7 @@
 # SmugMug image metadata. The metadata is downloaded to local
 # directories that mirror the structure of online SmugMug
 # folders and albums. Image metadata is stored in
-# durable version control friendly TAB delimted CSV files.
+# durable version control friendly TAB delimited CSV files.
 #
 # Thumbnail and small versions of online images are also
 # downloaded and stored in appropriate directories. Large sizes
