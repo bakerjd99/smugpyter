@@ -78,7 +78,7 @@ class PrintKeys(smugpyter.SmugPyter):
         return (aspect_ratios, print_areas, size_keywords)
 
     def print_size_key(self, height, width, *, no_ratio='0z1', no_pixels='0z0',
-                       min_area=17.5, ppi=360, tolerance=0.000005):
+                       min_area=12.0, ppi=360, tolerance=0.000005):
         """
         Compute print size key word from image dimensions. 
         The result is a character string.
