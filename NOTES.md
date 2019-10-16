@@ -4,11 +4,31 @@
 Remarks about outstanding tasks and other `SmugPyter` issues.
 Base 36 GUIDS cross reference *the history* of `TODO.md`.
 
+### October 16, 2019
+
+* I've added about a dozen new print sizes to `smug_default_sizes`.
+  I use other print vendors like Walmart on occasion and they support
+  sizes you don't find on SmugMug. Also, many of my older
+  images have sizes like `3x5`, `5x6`, `6x10` and lately `9x16`.
+  All these ratios come from the Picture Window Pro 
+  cropping tool. Finally, many of my panoramas are
+  nonstandard making them a nuisance to print. Specialty
+  printers like `artmill.com` support panorama ratios 
+  like `8x32` and `6x30` so I've added enough sizes
+  to support proportions up to `6:1`.
+
+* I had to increase the aspect ratio rounding precision to
+  distinguish ratios after these additions.
+
+* Finally, `PATCH` remains broken. It's only a problem
+  for me when making mass changes. Otherwise the work 
+  around described below meets my needs.
+
 ### December 27, 2018
 
 * I've reorganized the keyword calculations so they
   can all be updated in one run. Prior to this change
-  I had to set geotag keywords on SmugMgug and collect
+  I had to set geotag keywords on SmugMug and collect
   the changes before computing size and color keys.
   Now I only need to:
 
