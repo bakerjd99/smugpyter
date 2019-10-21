@@ -32,7 +32,7 @@ class PrintKeys(smugpyter.SmugPyter):
         (self.aspect_ratios, self.print_areas,
          self.size_keywords) = self.set_print_sizes(self.smug_print_sizes)
 
-    def aspect_ratio(self, height, width, *, precision=0.0005):
+    def aspect_ratio(self, height, width, *, precision=0.005):
         """ Image aspect ratio """
         return self.round_to(min(height, width) / max(height, width), precision)
 
