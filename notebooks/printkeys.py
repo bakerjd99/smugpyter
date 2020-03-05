@@ -8,23 +8,27 @@ class PrintKeys(smugpyter.SmugPyter):
 
     # some Walmart, Artmill and PWP sizes merged with SmugMug sizes
     smug_default_sizes = """
- 2x2      2x3      2x4      2x5      2.25x4   
- 2.5x3.5  3x4      3x5      3x7      3x9      
- 3x12     3x15     3x18     3.5x5    4x4      
+ 2x2      2x2.5    2x3      2x4      2x5      
+ 2.25x4   2.5x2.5  2.5x3.5  2.5x4    3x3      
+ 3x4      3x5      3x7      3x9      3x12     
+ 3x15     3x18     3.5x3.5  3.5x5    4x4      
  4x5      4x5.3    4x6      4x8      4x10     
  4.25x5.5 4.5x8    5x5      5x6      5x6.5    
  5x6.7    5x7      5x8      5x10     5x30     
  5.5x7    5.5x8    5.5x8.5  5.5x14   6x6      
- 6x8      6x10     6x14     6x18     6x24     
- 6x30     7x10     8x8      8x10     8x10.6   
- 8x12     8x16     8x20     8x24     8x32     
- 8x40     8.5x11   9x12     9x16     10x10    
- 10x12    10x13    10x14    10x15    10x16    
- 10x20    10x30    11x14    11x16    11x17    
- 11x28    12x12    12x18    12x20    12x24    
- 12x28    12x30    14x20    16x20    16x24    
- 16x32    18x24    18x32    20x20    20x24    
- 20x28    20x30    24x36    30x30  
+ 6x8      6x10     6x12     6x14     6x15     
+ 6x18     6x24     6x30     6x36     7x10     
+ 8x8      8x10     8x10.6   8x12     8x16     
+ 8x20     8x24     8x32     8x40     8.5x11   
+ 9x12     9x15     9x16     9x21     9x36     
+ 10x10    10x12    10x13    10x14    10x15    
+ 10x16    10x20    10x25    10x30    10x40    
+ 10x60    11x14    11x16    11x17    11x28    
+ 12x12    12x15    12x18    12x20    12x24    
+ 12x28    12x30    12x60    14x20    15x18    
+ 16x20    16x24    16x32    18x24    18x32    
+ 20x20    20x24    20x28    20x30    20x40    
+ 24x36    30x30    
 """
 
     # print size key lists
