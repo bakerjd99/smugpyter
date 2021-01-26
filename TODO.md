@@ -12,19 +12,21 @@ for relating issues, tickets and so forth across systems.
 
 `[begin-todo]`
 
-1. `<_85xwcz8j2awjeqt1y9qp1f8ev_>` Remove unused functions and improve comments in remaining.
+1. `<_2ys5yqm5ia9ift5b3lw5wxdr1_>` Add hidden image and private album data to collected metadata.
 
-2. `<_c8y9ygpu1wjjcgv00x8t0zy9p_>` Replace double authorization with only one - requires reworking many request functions.
+2. `<_85xwcz8j2awjeqt1y9qp1f8ev_>` Remove unused functions and improve comments in remaining.
 
-3. `<_5gpgxtf3jkznkpep3378auq72_>` Continue adding to test case files.
+3. `<_c8y9ygpu1wjjcgv00x8t0zy9p_>` Replace double authorization with only one - requires reworking many request functions.
 
-4. `<_4euc4ml01fnr2l6nr6hqe0aog_>` Add `SmugPyter` specific exception class - requires many tweaks.
+4. `<_5gpgxtf3jkznkpep3378auq72_>` Continue adding to test case files.
 
-5. `<_e6x7m9kqbms7cpsh73j09qrxz_>` Refine OAuth material in first Jupyter notebook.
+5. `<_4euc4ml01fnr2l6nr6hqe0aog_>` Add `SmugPyter` specific exception class - requires many tweaks.
 
-6. `<_3g6dzam8v2whg7oflf1d8f5ik_>` Fix typos in notebooks and standardize headers, sub-headers, et cetera.
+6. `<_e6x7m9kqbms7cpsh73j09qrxz_>` Refine OAuth material in first Jupyter notebook.
 
-7. `<_d3x4qhey3pan4abgke6oh7qky_>` Spawn related project to build `LaTeX` from `SmugMirror` metadata.
+7. `<_3g6dzam8v2whg7oflf1d8f5ik_>` Fix typos in notebooks and standardize headers, sub-headers, et cetera.
+
+8. `<_d3x4qhey3pan4abgke6oh7qky_>` Spawn related project to build `LaTeX` from `SmugMirror` metadata.
     The long term goal is a book format index of fully captioned images.
 
 9. `<_1jx2lr9ph683otlyvdrq1h6fj_>` SmugMug `PATCH` commands stopped working again - investigate.
