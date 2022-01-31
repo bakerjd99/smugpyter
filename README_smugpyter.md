@@ -19,4 +19,4 @@ The notebooks are best used in this order.
 6. [Unified XKCD Colors](https://github.com/bakerjd99/smugpyter/blob/master/notebooks/Unified%20XKCD%20Colors.ipynb)
 
 John Baker
-December 20, 2018
+January 31, 2022

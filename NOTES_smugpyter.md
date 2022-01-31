@@ -2,8 +2,18 @@
 =================
 
 Remarks about outstanding tasks and other `SmugPyter` issues.
-Base 36 GUIDS cross reference *the history* of `TODO.md`.
+Base 36 GUIDS cross reference *the history* of `TODO_smugpyter.md`.
 
+### January 31, 2022
+
+* I have been using `SmugPyter` for a number of years now. It's
+  been reliably collecting the metadata I care about without giving
+  me too much grief but I am now in the process of moving the program
+  to a new Windows PC and I'm being forced into making some changes.
+  `SmugPyter` ran under Python 3.6 the new machine is at 3.9. It seems
+  there have been some changes to libraries and so forth that typically
+  break old scripts. I'd rather not get into this but as I'm the sole creator and user of this program I have no choice. 
+  
 ### October 16, 2019
 
 * I've added about a dozen new print sizes to `smug_default_sizes`.
