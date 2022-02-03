@@ -1,5 +1,8 @@
-# Download new sample images: assumes (smugpyter) location is on sys.path.
+# download new sample images
 # Run after refreshing metadata files.
+import sys
+sys.path.append(r'C:\mp\jupyter\smugpyter\notebooks')
+
 import smugpyter
 
 smug = smugpyter.SmugPyter()

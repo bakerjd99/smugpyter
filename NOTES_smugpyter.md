@@ -4,6 +4,12 @@
 Remarks about outstanding tasks and other `SmugPyter` issues.
 Base 36 GUIDS cross reference *the history* of `TODO_smugpyter.md`.
 
+### February 3, 2022
+
+* I've adjusted `SmugPyter` to run on Python 3.9. There have been
+  changes to the `webcolors` module that breaks `SmugPyter`. I am
+  holding at an older version of `webcolors` for now.
+
 ### January 31, 2022
 
 * I have been using `SmugPyter` for a number of years now. It's
@@ -12,7 +18,8 @@ Base 36 GUIDS cross reference *the history* of `TODO_smugpyter.md`.
   to a new Windows PC and I'm being forced into making some changes.
   `SmugPyter` ran under Python 3.6 the new machine is at 3.9. It seems
   there have been some changes to libraries and so forth that typically
-  break old scripts. I'd rather not get into this but as I'm the sole creator and user of this program I have no choice. 
+  break old scripts. I'd rather not get into this but as I'm the sole creator 
+  and user of this program I have no choice. 
   
 ### October 16, 2019
 

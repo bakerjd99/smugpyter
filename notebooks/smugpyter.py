@@ -17,6 +17,7 @@
 # https://github.com/AndrewsOR/MugMatch/blob/master/mugMatch.py
 #
 # modified for python 3.6/jupyter environment - modifications assisted by 2to3 tool
+# further changes for python 3.9/jupyter 
 
 from rauth.service import OAuth1Service
 import requests_oauthlib
@@ -91,7 +92,8 @@ class SmugPyter(object):
                 'LOGGING', 'geo_changes')
             self.all_sizetag_changes_file = config_parser.get(
                 'LOGGING', 'size_changes')
-            self.mirror_database = config_parser.get('SMUGMUG', 'mirror_database')
+            self.mirror_database = config_parser.get(
+                'SMUGMUG', 'mirror_database')
             self.days_before = int(config_parser.get('SMUGMUG', 'days_before'))
         except:
             raise Exception(
@@ -332,7 +334,7 @@ class SmugPyter(object):
                       for i in album_images]
         return images_lba
 
-    def get_album_image_real_dates(self, album_images, *, realdate_dict=None):
+    def get_album_image_real_dates(self, album_images, *, realdate_dict={}):
         """
         Get a list of {ImageKey, AlbumKey, RealDate, FileName} dictionaries 
         for (album_images). 
@@ -357,6 +359,7 @@ class SmugPyter(object):
         headers = {'Accept': 'application/json'}
 
         for key, imfile, alkey in zip(image_keys, image_files, album_keys):
+            # print(key)
             if key in realdate_dict:
                 image_dict = realdate_dict[key]
                 if 'RealDate' in image_dict:
@@ -421,52 +424,16 @@ class SmugPyter(object):
         uri = response["Response"]["Node"]["Uris"]["ChildNodes"]["Uri"]
         return uri
 
-
-# NOTE: folling function does not scan all galleries - retired - will soon delete -
-
-#    def mirror_folders_offline(self, root_uri, root_dir, func_album=None, func_folder=None):
-#        """
-#        Recursively walk online SmugMug folders and albums and apply
-#        functions (func_album) and (func_folder).
-#        """
-#        root_uri = (self.smugmug_base_uri + '%s') % root_uri
-#        if not '!children' in root_uri:
-#            root_uri += '!children'
-#        #print('url = ' + root_uri)
-#        response = self.request('GET', root_uri, headers={
-#                                'Accept': 'application/json'})
-#        for node in response["Response"]["Node"]:
-#            name = self.extract_alphanum(node["Name"])
-#            path = '%s/%s' % (root_dir, name)
-#            # print(path)
-#            os.makedirs(path, exist_ok=True)
-#            if node["Type"] == 'Folder':
-#                if not func_folder == None:
-#                    func_folder(name, path)
-#                self.mirror_folders_offline(node["Uri"], path, func_album)
-#            elif node['Type'] == 'Album':
-#                print('visiting album ' + name)
-#                uri = node["Uris"]["Album"]["Uri"]
-#                album_id = uri.split('/')[-1]
-#                if not func_album == None:
-#                    func_album(album_id, name, path)
-
-        # Queue for download
-        # master_albums_list.append(path)
-        #dl_queue.put({'node' : node, 'path' : path})
-
-        # if 'NextPage' in response['Response']['Pages']:
-        #    self.mirror_folders_offline(pages['NextPage'], root_dir)
-
     def download_album_metadata(self, days_before=0):
-        
-        start_time = time.clock()
-        
+
+        start_time = time.time()
+
         if days_before == 0:
             print("Collecting all albums ... ")
         else:
-            print("Collecting albums changed in the last %s days" % (days_before))
-            
+            print("Collecting albums changed in the last %s days" %
+                  (days_before))
+
         rinfos = self.changed_online_galleries(days_before=days_before)
         album_count = len(rinfos)
         print("Scanning %s albums" % album_count)
@@ -485,25 +452,8 @@ class SmugPyter(object):
             os.makedirs(local_path, exist_ok=True)
             self.write_album_metadata(
                 ainfo, album_name, local_path)
-            
-        print("elasped seconds = %s" % (time.clock() - start_time))
 
-#    def download_smugmug_mirror(self, func_album=None, func_folder=None):
-#        """
-#        Walk SmugMug folders and albums and apply functions (func_album) and (func_folder).
-#
-#            smug = SmugPyter()
-#            smug.download_smugmug_mirror(func_album=smug.write_album_manifest)
-#            smug.download_smugmug_mirror(func_album=smug.write_album_info)
-#        """
-#        root_folder = self.local_directory
-#        folders = self.get_folders()
-#        for folder in folders:
-#            root_uri = self.get_child_node_uri(folder["NodeID"])
-#            top_folder = self.extract_alphanum(folder["Name"])
-#            self.mirror_folders_offline(root_uri, root_folder + top_folder,
-#                                        func_album, func_folder)
-#        print("done")
+        print("elasped seconds = %s" % (time.time() - start_time))
 
     def write_album_metadata(self, ainfo, name, path):
         """
@@ -846,16 +796,6 @@ class SmugPyter(object):
         image_key = row['ImageKey']
         self.all_keyword_changes[image_key] = row
 
-#        r = requests.patch(url=self.smugmug_api_base_url + '/image/' + image_id,
-#                           auth=self.auth,
-#                           data=json.dumps({"Keywords": keywords}),
-#                           headers={'Accept': 'application/json',
-#                                    'Content-Type': 'application/json'},
-#                           allow_redirects=False)
-#        if r.status_code != 301:
-#            # NIMP: need a better exception type
-#            raise ValueError("PATCH request to change keywords failed")
-
         return (True, image_id)
 
     def change_keywords(self, changes_file):
@@ -899,25 +839,26 @@ class SmugPyter(object):
                 image_key = row['ImageKey']
                 image_dict[image_key] = row
         return image_dict
-    
-    def merge_keywords_from_csv(self, csv_file, image_dict, *, split_delimiter=';'):    
+
+    def merge_keywords_from_csv(self, csv_file, image_dict, *, split_delimiter=';'):
         """
         Reads a change file and an existing dictionary and merges
         change file keywords with any corresponding dictionary keywords.
-        
+
             smug = SmugPyter()
             chg0 = r'c:/SmugMirror/Mirror/Places/USAandCanada/Minnesota/changes-Minnesota-Rrzd8K-x.txt'
             chg1 = r'c:/SmugMirror/Mirror/Places/USAandCanada/Minnesota/changes-Minnesota-Rrzd8K-x.txt'
             img_dict = smug.image_dict_from_csv(chg0)
             smug.merge_keywords_from_csv(chg1, img_dict)
-        """       
+        """
         with open(csv_file, 'r') as f:
             reader = csv.DictReader(f, dialect='excel', delimiter='\t')
             for row in reader:
                 bad_row = row["ImageKey"] is None or row["ImageKey"] == ""
-                bad_row = bad_row or row["Keywords"] is None 
+                bad_row = bad_row or row["Keywords"] is None
                 if bad_row:
-                    raise ValueError("(ImageKey, Keywords) missing in -> " + csv_file)
+                    raise ValueError(
+                        "(ImageKey, Keywords) missing in -> " + csv_file)
                 image_key = row['ImageKey']
                 csv_keys = row["Keywords"]
                 # merge in keyword changes to image dictionary
@@ -925,12 +866,13 @@ class SmugPyter(object):
                     dict_row = image_dict[image_key]
                     merge_keys = dict_row["Keywords"]
                     merge_keys = merge_keys + split_delimiter + csv_keys
-                    merge_keys = self.standard_keywords(merge_keys, split_delimiter=split_delimiter)
+                    merge_keys = self.standard_keywords(
+                        merge_keys, split_delimiter=split_delimiter)
                     merge_keys = (split_delimiter + ' ').join(merge_keys)
                     dict_row["Keywords"] = merge_keys
-                    image_dict[image_key] = dict_row                 
-        return image_dict      
-        
+                    image_dict[image_key] = dict_row
+        return image_dict
+
     def show_yammer(self, message):
         """ conditional yammer message """
         if self.yammer:
@@ -1119,30 +1061,32 @@ class SmugPyter(object):
         cn.close()
 
         return all_rows
-    
+
     def changed_online_galleries(self, days_before=0):
         """
         Get online galleries SmugMug marked as changed in the last (day_before) days.
         """
-        
+
         albums = self.get_albums()
-        ainfos = [self.get_album_info(j) for j in [i['AlbumKey'] for i in albums]]
-        
+        ainfos = [self.get_album_info(j)
+                  for j in [i['AlbumKey'] for i in albums]]
+
         # default is all galleries
         if days_before == 0:
             return ainfos
-        
+
         from_date = datetime.now() + timedelta(days=-days_before)
         from_date = pytz.utc.localize(from_date)
-        
-        # retain albums that are marked changed 
+
+        # retain albums that are marked changed
         rinfos = []
         for i, ainfo in enumerate(ainfos):
-            last_change = max(dateutil.parser.parse(ainfo['LastUpdated']), dateutil.parser.parse(ainfo['ImagesLastUpdated']))
+            last_change = max(dateutil.parser.parse(
+                ainfo['LastUpdated']), dateutil.parser.parse(ainfo['ImagesLastUpdated']))
             if from_date < last_change:
                 rinfos.append(ainfo)
-                
-        return rinfos   
+
+        return rinfos
 
     @staticmethod
     def extract_alphanum(in_string):
@@ -1242,7 +1186,7 @@ class SmugPyter(object):
     def image_path_from_file(manifest_file):
         """  Extract path from fully qualified manifest file names """
         # standarize path delimiters
-        manifest_file = manifest_file.replace('\\','/')
+        manifest_file = manifest_file.replace('\\', '/')
         delimiter = '/'
         image_path = manifest_file.split(delimiter)
         image_path[-1] = ''
@@ -1254,7 +1198,7 @@ class SmugPyter(object):
         """ parse ParentFolders and return local directory path """
         try:
             # NOTE: SmugMug parent folders use custom
-            # folder names set on the website by the user 
+            # folder names set on the website by the user
             # when building the path - make sure no delimiter
             # characters '- /' are embedded in custom names.
             path_list = ((parent_folders.replace('-', '')
@@ -1267,12 +1211,10 @@ class SmugPyter(object):
         except:
             return ''
 
-#if __name__ == '__main__':
+# if __name__ == '__main__':
 #
 #    smug = SmugPyter()
 #    chg0 = r'c:/SmugMirror/Mirror/Places/USAandCanada/Minnesota/changes-Minnesota-Rrzd8K-x.txt'
 #    chg1 = r'c:/SmugMirror/Mirror/Places/USAandCanada/Minnesota/changes-Minnesota-Rrzd8K-x.txt'
 #    img_dict = smug.image_dict_from_csv(chg0)
 #    smug.merge_keywords_from_csv(chg1, img_dict)
-   
-    

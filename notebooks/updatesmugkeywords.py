@@ -1,11 +1,13 @@
-# Update CSV TAB delimited geotag, print size and color keyword 
+# Update CSV TAB delimited geotag, print size and color keyword
 # changes files. Run after refreshing metadata files and updating
-# sample images. Assumes (smugpyter, geotagkeys, printkeys, colorkeys)
-# are on sys.path.
+# sample images.
 
-import geotagkeys
-import printkeys
 import colorkeys
+import printkeys
+import geotagkeys
+import sys
+sys.path.append(r'C:\mp\jupyter\smugpyter\notebooks')
+
 
 # subclasses of SmugPyter
 gk = geotagkeys.GeotagKeys(log_start=True)

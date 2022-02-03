@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import csv
-import webcolors
+import webcolors 
 import numpy as np
 import random
 import math
@@ -22,7 +22,7 @@ class ColorKeys(smugpyter.SmugPyter):
     portion = 5
 
     # overly dominant colors - these colors will be
-    # assigned to frequently by the default selection
+    # assigned too frequently by the default selection
     over_dominant = ['darkslategrey', 'black', 'dimgrey', 'darkgrey',
                      'grey', 'darkolivegreen', 'silver']
 
@@ -39,7 +39,10 @@ class ColorKeys(smugpyter.SmugPyter):
         """
         try:
             rgb_distance = 0
-            closest_name = actual_name = webcolors.rgb_to_name(requested_color)
+            # NOTE: changes between python and libraries
+            # invalidated an implicit cast - fixed here
+            rgb_color = tuple(requested_color.astype(int))
+            closest_name = actual_name = webcolors.rgb_to_name(rgb_color)
         except ValueError:
             closest_name, rgb_distance = self.closest_color(requested_color)
             actual_name = None
@@ -236,7 +239,8 @@ class ColorKeys(smugpyter.SmugPyter):
         if self.merge_changes:
             changes_file = self.changes_filename(manifest_file)
             changes_dict = self.image_dict_from_csv(changes_file)
-            changes_dict = self.merge_keywords_from_csv(self.all_sizetag_changes_file, changes_dict)
+            changes_dict = self.merge_keywords_from_csv(
+                self.all_sizetag_changes_file, changes_dict)
         merge_keys = self.merge_changes and 0 < len(changes_dict)
 
         image_path = self.image_path_from_file(manifest_file)
@@ -271,6 +275,12 @@ class ColorKeys(smugpyter.SmugPyter):
 
                 # read sample image file and compute color key
                 image = Image.open(image_file_name).convert('RGB')
+                # color_key = self.dominant_color_key4(image,
+                #                                         num_clusters=self.num_clusters,
+                #                                         factor=self.resize_factor,
+                #                                         portion=self.portion,
+                #                                         pixel_func=self.rulethirdsq)
+
                 try:
                     color_key = self.dominant_color_key4(image,
                                                          num_clusters=self.num_clusters,
@@ -284,9 +294,9 @@ class ColorKeys(smugpyter.SmugPyter):
                     continue
 
                 same, new_keywords = self.update_keywords(color_key,
-                                                      inwords,
-                                                      key_pattern=r"\d+?[_]",
-                                                      split_delimiter=split_delimiter)
+                                                          inwords,
+                                                          key_pattern=r"\d+?[_]",
+                                                          split_delimiter=split_delimiter)
                 if not same:
                     change_count += 1
                     if self.verbose == True:
@@ -295,7 +305,7 @@ class ColorKeys(smugpyter.SmugPyter):
                                   'FileName': row['FileName'], 'Keywords': new_keywords}
                     changed_keywords.append(key_change)
                     self.all_keyword_changes[key] = key_change
-                    
+
         # when no images are changed return a header place holder row
         if change_count == 0:
             changed_keywords.append({'ImageKey': None, 'AlbumKey': None, 'FileName': None,
@@ -324,7 +334,8 @@ class ColorKeys(smugpyter.SmugPyter):
         """
         print("processing color keys")
         self.all_keyword_changes = {}
-        imc = self.scan_do_local_files(root, func_do=self.write_color_keyword_changes)
+        imc = self.scan_do_local_files(
+            root, func_do=self.write_color_keyword_changes)
         self.write_all_keyword_changes(self.all_keyword_changes_file)
         return imc
 
@@ -340,7 +351,7 @@ class ColorKeys(smugpyter.SmugPyter):
 
     def color_grade(self, names_freq_dist):
         """Compute color metric"""
-        cnorm = lambda v: v/(max(0.000001, max(v)))
+        def cnorm(v): return v/(max(0.000001, max(v)))
         n, f, d = names_freq_dist
         d = 1.0 - cnorm(np.array(d))
         f = cnorm(np.array(f))

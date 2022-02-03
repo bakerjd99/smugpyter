@@ -3,6 +3,9 @@ title Running smug keyword update ...
 pushd
 setlocal
 
+rem activate anaconda python
+call c:\Anaconda3\Scripts\activate.bat 
+
 rem Update local keyword changes files.
 python updatesmugkeywords.py
 
