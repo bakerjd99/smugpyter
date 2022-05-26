@@ -12,30 +12,32 @@ for relating issues, tickets and so forth across systems.
 
 `[begin-todo]`
 
-1. `<_a1v2jf5jsvj83o33j3ogtvaen_>` Update to use current versions of `webcolors`.
+1. `<_9ignfplip9uisofeav4u87388_>` The web request to fetch real dates has stopped working (May 24, 2022). Fix or replace.
 
-2. `<_5i2y6xvmc479sbqerqje172c3_>` Fix occassional request failures when collecting metadata - retry a few times.
+2. `<_a1v2jf5jsvj83o33j3ogtvaen_>` Update to use current versions of `webcolors`.
 
-3. `<_2ys5yqm5ia9ift5b3lw5wxdr1_>` Add hidden image and private album data to collected metadata.
+3. `<_5i2y6xvmc479sbqerqje172c3_>` Fix occassional request failures when collecting metadata - retry a few times.
 
-4. `<_85xwcz8j2awjeqt1y9qp1f8ev_>` Remove unused functions and improve comments in remaining.
+4. `<_2ys5yqm5ia9ift5b3lw5wxdr1_>` Add hidden image and private album data to collected metadata.
 
-5. `<_c8y9ygpu1wjjcgv00x8t0zy9p_>` Replace double authorization with only one - requires reworking many request functions.
+5. `<_85xwcz8j2awjeqt1y9qp1f8ev_>` Remove unused functions and improve comments in remaining.
 
-6. `<_5gpgxtf3jkznkpep3378auq72_>` Continue adding to test case files.
+6. `<_c8y9ygpu1wjjcgv00x8t0zy9p_>` Replace double authorization with only one - requires reworking many request functions.
 
-7. `<_4euc4ml01fnr2l6nr6hqe0aog_>` Add `SmugPyter` specific exception class - requires many tweaks.
+7. `<_5gpgxtf3jkznkpep3378auq72_>` Continue adding to test case files.
 
-8. `<_e6x7m9kqbms7cpsh73j09qrxz_>` Refine OAuth material in first Jupyter notebook.
+8. `<_4euc4ml01fnr2l6nr6hqe0aog_>` Add `SmugPyter` specific exception class - requires many tweaks.
 
-9. `<_3g6dzam8v2whg7oflf1d8f5ik_>` Fix typos in notebooks and standardize headers, sub-headers, et cetera.
+9. `<_e6x7m9kqbms7cpsh73j09qrxz_>` Refine OAuth material in first Jupyter notebook.
 
-10.  `<_d3x4qhey3pan4abgke6oh7qky_>` Spawn related project to build `LaTeX` from `SmugMirror` metadata.
+10.  `<_3g6dzam8v2whg7oflf1d8f5ik_>` Fix typos in notebooks and standardize headers, sub-headers, et cetera.
+
+11.  `<_d3x4qhey3pan4abgke6oh7qky_>` Spawn related project to build `LaTeX` from `SmugMirror` metadata.
     The long term goal is a book format index of fully captioned images.
 
-11.  `<_1jx2lr9ph683otlyvdrq1h6fj_>` SmugMug `PATCH` commands stopped working again - investigate.
+12.  `<_1jx2lr9ph683otlyvdrq1h6fj_>` SmugMug `PATCH` commands stopped working again - investigate.
 
-12. `<_1g8i6cxe6xe199imf8o75nsy1_>` Add functions to generate all keys for a single image from its file
+13. `<_1g8i6cxe6xe199imf8o75nsy1_>` Add functions to generate all keys for a single image from its file
     name and position when given an album key or file name. Would be very useful
     for making spot corrections and adjustments to assigned keys.
 

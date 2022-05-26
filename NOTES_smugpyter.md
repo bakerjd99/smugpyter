@@ -4,6 +4,15 @@
 Remarks about outstanding tasks and other `SmugPyter` issues.
 Base 36 GUIDS cross reference *the history* of `TODO_smugpyter.md`.
 
+### May 26, 2022
+
+* The web request to fetch what I call "Real Dates" has stopped working
+  This is another request that has stopped working. For now I have 
+  hacked `get_album_image_real_dates` to return `9999:01:01T00:00:00`
+  when this occurs. I will edit the dates later by hand until I fix
+  this annoyance. This entire program is due for replacement. Unfortunately
+  the data it captures feeds into other systems that I care about.
+
 ### February 3, 2022
 
 * I've adjusted `SmugPyter` to run on Python 3.9. There have been

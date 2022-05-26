@@ -370,11 +370,15 @@ class SmugPyter(object):
             else:
                 # this is ugly but I don't see any other way to get the original image EXIF dates
                 self.show_yammer('getting real date -> ' + imfile)
-                response = self.request('GET', self.smugmug_api_base_url + "/image/" + key + "!metadata",
-                                        params=params, headers=headers)
-                image_date = self.get_image_date(
-                    response['Response']['ImageMetadata'])
-
+                self.show_yammer('real date hack - > ' + imfile)
+                
+                # stopped working May 24, 2022 
+                #response = self.request('GET', self.smugmug_api_base_url + "/image/" + key + "!metadata",
+                #                        params=params, headers=headers)
+                #image_date = self.get_image_date(
+                #    response['Response']['ImageMetadata'])
+                image_date = "9999-01-01T00:00:00"
+                
             image_dates.append({"ImageKey": key, "AlbumKey": alkey,
                                 "RealDate": image_date, "FileName": imfile})
         return image_dates
