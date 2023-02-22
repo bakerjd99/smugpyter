@@ -289,6 +289,7 @@ class ColorKeys(smugpyter.SmugPyter):
                                                          pixel_func=self.rulethirdsq)
                 except:
                     # some images cannot be processed - log for inspection
+                    #print(exception) # dump error stack
                     error_message = "cannot compute color key -> " + image_file_name
                     self.append_to_log(error_message)
                     continue
@@ -374,7 +375,11 @@ class ColorKeys(smugpyter.SmugPyter):
     def closest_color(requested_color):
         """ Nearest named web color using Euclidean metric."""
         min_colors = {}
-        for key, name in webcolors.css3_hex_to_names.items():
+        
+        # case change in function name Feb 20, 2023
+        #for key, name in webcolors.css3_hex_to_names.items():
+        
+        for key, name in webcolors.CSS3_HEX_TO_NAMES.items():
             r_c, g_c, b_c = webcolors.hex_to_rgb(key)
             rd = (r_c - requested_color[0]) ** 2
             gd = (g_c - requested_color[1]) ** 2
